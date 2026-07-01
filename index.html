@@ -1,0 +1,1990 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Maneng · Leroy Merlin — Status de Climatização</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800&family=DM+Mono:wght@400;500&display=swap');
+:root{
+  --leroy:#5FA32E; --leroy-dk:#4E8C28; --leroy-lt:#7AC143;
+  --ink:#F4F6F5; --panel:#FFFFFF; --panel2:#F0F2F1; --line:#DDE3E0;
+  --txt:#1B2620; --mut:#5E6E64; --mut2:#90A096;
+  --ok:#5FA32E; --warn:#D8920E; --bad:#D63B22;
+  --maneng:#F47A20; --maneng-azul:#1F4FA3;
+  --r:14px;
+  --mono:"DM Mono",ui-monospace,"SF Mono",Menlo,Consolas,monospace;
+  --sans:"Hanken Grotesk",-apple-system,system-ui,"Segoe UI",Roboto,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{font-family:var(--sans);background:var(--ink);color:var(--txt);
+  background-image:radial-gradient(circle at 15% 0%,rgba(95,163,46,.04),transparent 40%),radial-gradient(circle at 90% 10%,rgba(31,79,163,.03),transparent 45%);
+  min-height:100vh;-webkit-font-smoothing:antialiased}
+
+/* ---- Topbar ---- */
+.top{position:sticky;top:0;z-index:50;background:rgba(255,255,255,.95);backdrop-filter:blur(12px);
+  border-bottom:1px solid var(--line)}
+.top-in{max-width:1280px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:18px}
+.brand{display:flex;align-items:center;gap:13px}
+.logo-m{display:flex;flex-direction:column;line-height:1}
+.logo-m b{font-size:22px;font-weight:800;letter-spacing:-.5px}
+.logo-m b em{color:var(--maneng-azul);font-style:normal}
+.logo-m b span{color:var(--maneng)}
+.logo-m small{font-size:9.5px;letter-spacing:2.5px;color:var(--mut);text-transform:uppercase;margin-top:3px}
+.cli{margin-left:auto;display:flex;align-items:center;gap:12px}
+.cli-tag{display:flex;align-items:center;gap:8px;padding:7px 14px;border:1px solid var(--line);border-radius:99px;background:var(--panel)}
+.cli-dot{width:9px;height:9px;border-radius:2px;background:var(--leroy)}
+.cli-tag b{font-size:13px;font-weight:700}
+.cli-tag small{font-size:10px;color:var(--mut);letter-spacing:1px}
+.sync{font-family:var(--mono);font-size:11px;color:var(--mut);display:flex;align-items:center;gap:7px}
+.sync .pip{width:7px;height:7px;border-radius:50%;background:var(--mut2)}
+.sync.live .pip{background:var(--leroy);box-shadow:0 0 0 0 rgba(120,190,32,.6);animation:pulse 2s infinite}
+.sync.err .pip{background:var(--bad)}
+@keyframes pulse{0%{box-shadow:0 0 0 0 rgba(120,190,32,.5)}70%{box-shadow:0 0 0 7px rgba(120,190,32,0)}100%{box-shadow:0 0 0 0 rgba(120,190,32,0)}}
+
+/* ---- Nav ---- */
+.nav{position:sticky;top:61px;z-index:40;background:rgba(255,255,255,.92);backdrop-filter:blur(10px);border-bottom:1px solid var(--line)}
+.nav-in{max-width:1280px;margin:0 auto;padding:0 22px;display:flex;align-items:center;gap:6px;overflow-x:auto;scrollbar-width:thin}
+.nav-in::-webkit-scrollbar{height:0}
+.tab{flex:0 0 auto;padding:13px 16px;font-size:13px;font-weight:600;color:var(--mut);border:none;background:none;cursor:pointer;
+  border-bottom:2px solid transparent;white-space:nowrap;transition:.15s;font-family:var(--sans)}
+.tab:hover{color:var(--txt)}
+.tab.on{color:var(--leroy);border-bottom-color:var(--leroy)}
+.tab.home{display:flex;align-items:center;gap:7px}
+.searchwrap{margin-left:auto;flex:0 0 auto;position:relative;padding:7px 0}
+.searchwrap input{background:var(--panel);border:1px solid var(--line);border-radius:99px;color:var(--txt);
+  padding:8px 14px 8px 34px;font-size:13px;width:180px;font-family:var(--sans);outline:none;transition:.2s}
+.searchwrap input:focus{border-color:var(--leroy);width:220px}
+.searchwrap svg{position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--mut)}
+
+/* ---- Layout ---- */
+.wrap{max-width:1280px;margin:0 auto;padding:26px 22px 80px}
+.view{display:none}
+.view.on{display:block;animation:fade .35s ease}
+@keyframes fade{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+
+/* ---- Home hero ---- */
+.hero{display:grid;grid-template-columns:1.15fr 1fr;gap:22px;margin-bottom:22px}
+@media(max-width:840px){.hero{grid-template-columns:1fr}}
+.dial{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--r);
+  padding:30px;display:flex;align-items:center;gap:30px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.dial::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 80% 120%,rgba(120,190,32,.12),transparent 55%)}
+.gauge{position:relative;flex:0 0 auto}
+.gauge svg{display:block;transform:rotate(-90deg)}
+.gauge .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.gauge .val b{font-size:42px;font-weight:800;letter-spacing:-2px;line-height:1}
+.gauge .val small{font-size:10px;letter-spacing:2px;color:var(--mut);text-transform:uppercase;margin-top:3px}
+.dial-meta{position:relative}
+.dial-meta h1{font-size:15px;font-weight:700;letter-spacing:-.2px;margin-bottom:4px}
+.dial-meta p{font-size:13px;color:var(--mut);line-height:1.5;margin-bottom:18px;max-width:240px}
+.dial-meta .row{display:flex;gap:22px}
+.dial-meta .row div b{font-size:24px;font-weight:800;font-family:var(--mono);display:block;line-height:1}
+.dial-meta .row div small{font-size:10.5px;color:var(--mut);letter-spacing:.5px;text-transform:uppercase}
+.dial-meta .row .g b{color:var(--ok)} .dial-meta .row .r b{color:var(--bad)}
+
+.kpis{display:grid;grid-template-rows:repeat(2,1fr);gap:14px}
+.kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;display:flex;flex-direction:column;justify-content:center;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.kpi .lab{font-size:11px;letter-spacing:1.2px;color:var(--mut);text-transform:uppercase;display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.kpi .lab i{width:8px;height:8px;border-radius:2px;display:inline-block}
+.kpi .big{font-size:34px;font-weight:800;font-family:var(--mono);letter-spacing:-1px;line-height:1}
+.kpi .sub{font-size:12px;color:var(--mut);margin-top:4px}
+.kpi .spark{position:absolute;right:18px;bottom:14px;display:flex;align-items:flex-end;gap:3px;height:34px}
+.kpi-click{position:relative}
+.kpi-cta{font-size:10px;font-weight:700;color:var(--leroy);letter-spacing:.3px;margin-left:auto;text-transform:none}
+.loja-select{margin-top:12px;width:100%;background:var(--panel2);border:1px solid var(--line);border-radius:9px;color:var(--txt);padding:9px 11px;font-size:13px;font-family:var(--sans);cursor:pointer;outline:none}
+.loja-select:focus{border-color:var(--leroy)}
+.loja-select option{background:var(--panel)}
+.kpi .spark span{width:5px;background:var(--line);border-radius:2px}
+
+/* ---- Section ---- */
+.sec{margin-top:30px}
+.sec-h{display:flex;align-items:baseline;gap:12px;margin-bottom:14px}
+.sec-h .n{font-family:var(--mono);font-size:12px;color:var(--leroy);font-weight:500}
+.sec-h h2{font-size:17px;font-weight:700;letter-spacing:-.3px}
+.sec-h .hint{margin-left:auto;font-size:12px;color:var(--mut2)}
+
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:18px}
+@media(max-width:840px){.grid2{grid-template-columns:1fr}}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:20px;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.card h3{font-size:13px;font-weight:700;letter-spacing:.3px;margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.card h3 .pill{font-family:var(--mono);font-size:11px;font-weight:500;color:var(--mut);margin-left:auto}
+
+/* ranking rows */
+.rank{display:flex;flex-direction:column;gap:9px}
+.rrow{display:grid;grid-template-columns:22px 1fr auto;align-items:center;gap:11px;cursor:pointer;padding:5px 7px;margin:-5px -7px;border-radius:8px;transition:.13s}
+.rrow:hover{background:var(--panel2)}
+.rrow .pos{font-family:var(--mono);font-size:12px;color:var(--mut2);text-align:right}
+.rrow .nm{display:flex;flex-direction:column;min-width:0}
+.rrow .nm b{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.rrow .nm small{font-size:10.5px;color:var(--mut);font-family:var(--mono)}
+.rrow .bar{display:flex;align-items:center;gap:9px}
+.rrow .track{width:74px;height:7px;border-radius:99px;background:var(--line);overflow:hidden}
+.rrow .fill{height:100%;border-radius:99px}
+.rrow .pct{font-family:var(--mono);font-size:12.5px;font-weight:500;width:38px;text-align:right}
+
+/* UF bars */
+.ufbars{display:flex;flex-direction:column;gap:11px}
+.ufrow{display:grid;grid-template-columns:42px 1fr 46px;align-items:center;gap:12px}
+.ufrow .uf{font-family:var(--mono);font-size:12px;color:var(--mut)}
+.ufrow .track{height:9px;border-radius:99px;background:var(--line);overflow:hidden}
+.ufrow .fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+.ufrow .v{font-family:var(--mono);font-size:12px;text-align:right;font-weight:500}
+
+/* donut legend */
+.donut-wrap{display:flex;align-items:center;gap:24px}
+.legend{display:flex;flex-direction:column;gap:12px}
+.legend .li{display:flex;align-items:center;gap:10px}
+.legend .li i{width:11px;height:11px;border-radius:3px}
+.legend .li b{font-family:var(--mono);font-size:16px;font-weight:500}
+.legend .li small{font-size:11px;color:var(--mut);display:block;letter-spacing:.5px}
+
+/* ---- Salão de Vendas (priority) ---- */
+#salaoSec .sec-h .n{color:var(--maneng)}
+.salao-hero{display:grid;grid-template-columns:1.5fr 1fr;gap:18px}
+@media(max-width:840px){.salao-hero{grid-template-columns:1fr}}
+.salao-compare{background:linear-gradient(160deg,var(--panel2),var(--panel));border:1px solid var(--line);border-radius:var(--r);padding:26px;display:flex;align-items:center;justify-content:center;gap:20px;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.salao-compare::before{content:"";position:absolute;inset:0;background:radial-gradient(circle at 20% 120%,rgba(244,122,32,.10),transparent 55%)}
+.sc-gauge{position:relative;text-align:center;z-index:1}
+.sc-gauge .gauge{position:relative;display:inline-block}
+.sc-gauge .gauge .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.sc-gauge .gauge .val b{font-size:30px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.sc-gauge .gauge .val small{font-size:9px;letter-spacing:1.5px;color:var(--mut);text-transform:uppercase;margin-top:2px}
+.sc-cap{margin-top:12px}
+.sc-cap b{font-size:13px;font-weight:700;display:block}
+.sc-cap small{font-size:11px;color:var(--mut);font-family:var(--mono)}
+.sc-meta{display:block;margin-top:6px;font-size:10.5px;font-weight:600;padding:3px 8px;border-radius:6px;display:inline-block}
+.sc-meta.gap{background:rgba(214,59,34,.1);color:var(--bad)}
+.sc-meta.goal{background:rgba(95,163,46,.12);color:var(--leroy-dk)}
+.sc-vs{font-family:var(--mono);font-size:13px;color:var(--mut2);font-weight:500;z-index:1}
+.salao-side{display:flex;flex-direction:column;gap:14px}
+.salao-kpi{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:18px 20px;flex:1;display:flex;flex-direction:column;justify-content:center}
+.salao-kpi b{font-family:var(--mono);font-size:32px;font-weight:500;letter-spacing:-1px;line-height:1}
+.salao-kpi small{font-size:12px;color:var(--mut);margin-top:6px}
+.salao-kpi.crit{background:rgba(232,83,58,.07);border-color:rgba(232,83,58,.3)}
+.salao-kpi.crit b{color:var(--bad)}
+.salao-gap{font-size:12px;color:var(--mut);line-height:1.5;padding:14px 18px;border:1px dashed var(--line);border-radius:var(--r);background:rgba(244,122,32,.04)}
+.salao-gap b{color:var(--maneng);font-family:var(--mono)}
+
+/* ---- CSV upload + filters + charts ---- */
+.uploadbar{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.uploadbtn{background:var(--maneng-azul);color:#fff;border:none;border-radius:9px;padding:10px 18px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--sans);display:inline-flex;align-items:center;gap:7px}
+.uploadbtn:hover{filter:brightness(1.1)}
+.ghostbtn{background:var(--panel);color:var(--txt);border:1px solid var(--line);border-radius:9px;padding:10px 16px;font-weight:600;font-size:13px;cursor:pointer;font-family:var(--sans)}
+.ghostbtn:hover{border-color:var(--leroy);color:var(--leroy-dk)}
+.filterbar{display:flex;gap:10px;flex-wrap:wrap;margin-top:18px}
+.filterbar .fchip{font-size:12px;padding:7px 13px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--mut);cursor:pointer;transition:.13s}
+.filterbar .fchip:hover{color:var(--txt)}
+.filterbar .fchip.on{background:var(--leroy);color:#fff;border-color:var(--leroy);font-weight:600}
+.filterbar select{font-size:12px;padding:7px 12px;border-radius:9px;background:var(--panel);border:1px solid var(--line);color:var(--txt);font-family:var(--sans);cursor:pointer}
+.filterbar .fgroup{display:flex;align-items:center;gap:7px}
+.filterbar .fgroup label{font-size:11px;color:var(--mut2);text-transform:uppercase;letter-spacing:.5px}
+.chartgrid{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
+@media(max-width:840px){.chartgrid{grid-template-columns:1fr}}
+.chartgrid .card.wide{grid-column:1/-1}
+.hbar{display:flex;flex-direction:column;gap:10px}
+.hbar-row{display:grid;grid-template-columns:120px 1fr auto;align-items:center;gap:11px}
+.hbar-row .nm{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.hbar-row .track{height:18px;border-radius:6px;background:var(--panel2);overflow:hidden}
+.hbar-row .fill{height:100%;border-radius:6px;transition:width .7s cubic-bezier(.2,.8,.2,1);min-width:2px}
+.hbar-row .vv{font-family:var(--mono);font-size:11.5px;text-align:right;white-space:nowrap}
+.vbar{display:flex;align-items:flex-end;gap:8px;height:180px;padding-top:10px}
+.vbar-col{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:6px;height:100%}
+.vbar-col .bar{width:100%;max-width:46px;border-radius:6px 6px 0 0;transition:height .7s cubic-bezier(.2,.8,.2,1);min-height:2px;position:relative}
+.vbar-col .bv{font-family:var(--mono);font-size:10px;color:var(--mut);position:absolute;top:-16px;left:50%;transform:translateX(-50%);white-space:nowrap}
+.vbar-col .bl{font-size:10.5px;color:var(--mut);font-weight:600}
+.donut-legend2{display:flex;flex-direction:column;gap:10px}
+.donut-legend2 .li{display:flex;align-items:center;gap:9px;font-size:12px}
+.donut-legend2 .li i{width:11px;height:11px;border-radius:3px;flex:0 0 auto}
+.donut-legend2 .li .lv{margin-left:auto;font-family:var(--mono);font-size:12px;font-weight:500}
+.csv-empty{padding:46px 20px;text-align:center;color:var(--mut);border:2px dashed var(--line);border-radius:14px}
+.csv-empty b{display:block;color:var(--txt);font-size:15px;margin-bottom:7px}
+.csv-empty .hintline{font-size:12.5px;margin-top:10px}
+
+/* ---- Operação unificada (rede + áreas) ---- */
+.oparea{display:grid;grid-template-columns:1.1fr 2.4fr;gap:16px;align-items:stretch}
+.oparea-total{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;background:linear-gradient(135deg,rgba(95,163,46,.08),var(--panel));border:1px solid var(--line);border-radius:14px;padding:20px}
+.oparea-total .gauge{width:150px;height:150px}
+.oparea-cap{text-align:center}
+.oparea-cap b{font-size:15px;display:block}
+.oparea-cap small{font-size:11.5px;color:var(--mut);display:block;margin-top:2px}
+.oparea-nums{display:flex;gap:18px;justify-content:center;margin-top:12px}
+.oparea-nums span{font-size:11px;color:var(--mut);display:flex;flex-direction:column;align-items:center}
+.oparea-nums b{font-size:20px;font-weight:800;font-family:var(--mono)}
+.oparea-nums .g b{color:var(--leroy-dk)}
+.oparea-nums .r b{color:var(--bad)}
+.oparea .areas-grid{grid-template-columns:repeat(3,1fr)}
+.dial-compact{padding:0}
+@media(max-width:860px){.oparea{grid-template-columns:1fr}.oparea .areas-grid{grid-template-columns:1fr}}
+/* salão tipo bar chart total vs paradas */
+.stipo-chart{display:flex;flex-direction:column;gap:12px;margin-top:6px}
+.stipo-row{display:grid;grid-template-columns:110px 1fr 92px;align-items:center;gap:12px}
+.stipo-nm{font-size:12.5px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.stipo-bars{position:relative;height:24px;background:var(--panel2);border-radius:6px;overflow:hidden}
+.stipo-tot{position:absolute;left:0;top:0;bottom:0;background:var(--leroy);opacity:.28;border-radius:6px}
+.stipo-par{position:absolute;left:0;top:0;bottom:0;background:var(--bad);border-radius:6px;display:flex;align-items:center;padding-left:8px}
+.stipo-par b{color:#fff;font-size:11px;font-family:var(--mono);font-weight:700}
+.stipo-val{font-size:11px;font-family:var(--mono);text-align:right;color:var(--mut)}
+.stipo-val b{color:var(--bad);font-size:13px}
+.stipo-leg{display:flex;gap:16px;margin-top:14px;font-size:11px;color:var(--mut)}
+.stipo-leg i{display:inline-block;width:11px;height:11px;border-radius:3px;margin-right:5px;vertical-align:-1px}
+/* ---- end ---- */
+/* ---- Status por área (4 gauges) ---- */
+.areas-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+@media(max-width:840px){.areas-grid{grid-template-columns:repeat(2,1fr)}}
+@media(max-width:480px){.areas-grid{grid-template-columns:1fr}}
+.area-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:22px 18px;display:flex;flex-direction:column;align-items:center;text-align:center;gap:14px;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03);position:relative;overflow:hidden}
+.area-card.geral{border-color:var(--maneng-azul);background:linear-gradient(160deg,rgba(31,79,163,.05),var(--panel))}
+.area-card.salao{border-color:var(--maneng);background:linear-gradient(160deg,rgba(244,122,32,.06),var(--panel))}
+.area-card .gauge{position:relative}
+.area-card .gauge .val{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center}
+.area-card .gauge .val b{font-size:26px;font-weight:800;letter-spacing:-1.5px;line-height:1}
+.area-card .gauge .val small{font-size:8.5px;letter-spacing:1.2px;color:var(--mut);text-transform:uppercase;margin-top:2px}
+.area-cap b{font-size:13.5px;font-weight:700;display:block}
+.area-cap small{font-size:11px;color:var(--mut);display:block;margin-top:3px}
+.area-sub{display:inline-block;margin-top:8px;font-size:10.5px;font-weight:600;padding:3px 9px;border-radius:6px}
+.area-sub.gap{background:rgba(214,59,34,.1);color:var(--bad)}
+.area-sub.goal{background:rgba(95,163,46,.12);color:var(--leroy-dk)}
+
+/* ---- Status por área end ---- */
+/* ---- Pareto / concentração / salão por tipo ---- */
+.concentra{margin-top:16px;display:flex;align-items:center;gap:16px;padding:14px 18px;background:linear-gradient(135deg,rgba(214,59,34,.06),var(--panel));border:1px solid var(--line);border-radius:12px;flex-wrap:wrap}
+.concentra .big{font-size:30px;font-weight:800;color:var(--bad);letter-spacing:-1px;line-height:1}
+.concentra .txt{font-size:13px;color:var(--txt)}
+.concentra .txt b{color:var(--bad)}
+.concentra .txt small{display:block;color:var(--mut);font-size:11.5px;margin-top:3px}
+.pareto{margin-top:6px}
+.pareto-row{display:grid;grid-template-columns:150px 1fr 50px 56px;align-items:center;gap:10px;padding:5px 0;cursor:pointer}
+.pareto-row:hover .pname{color:var(--leroy-dk)}
+.pareto-row .pname{font-size:12px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pareto-row .ptrack{height:20px;background:var(--panel2);border-radius:5px;overflow:hidden;position:relative}
+.pareto-row .pfill{height:100%;background:linear-gradient(90deg,var(--bad),var(--maneng));border-radius:5px;transition:width .6s}
+.pareto-row .pval{font-family:var(--mono);font-size:12px;font-weight:700;text-align:center}
+.pareto-row .pacum{font-family:var(--mono);font-size:11px;color:var(--maneng-azul);text-align:right;font-weight:600}
+.pareto-head{display:grid;grid-template-columns:150px 1fr 50px 56px;gap:10px;font-size:9.5px;text-transform:uppercase;letter-spacing:.6px;color:var(--mut2);font-weight:700;padding-bottom:8px;border-bottom:1px solid var(--line);margin-bottom:6px}
+.pareto-head .r{text-align:right}.pareto-head .c{text-align:center}
+.pareto-80{font-size:11px;color:var(--maneng-azul);margin-top:10px;padding-top:10px;border-top:1px dashed var(--line)}
+.pareto-80 b{font-weight:700}
+.salaotipo-head{display:flex;align-items:center;gap:14px;flex-wrap:wrap;margin-bottom:14px}
+.salaotipo-resumo{font-size:12.5px;color:var(--mut)}
+.salaotipo-resumo b{color:var(--bad);font-family:var(--mono)}
+.salaotipo-list{display:flex;flex-direction:column;gap:8px}
+.stp-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;padding:11px 14px;background:var(--panel2);border-radius:9px;border-left:3px solid var(--bad);cursor:pointer;transition:.13s}
+.stp-item:hover{transform:translateX(2px);background:var(--ink)}
+.stp-item .l b{font-size:13px;font-weight:700}
+.stp-item .l small{display:block;font-size:11px;color:var(--mut);margin-top:2px}
+.stp-item .r{font-family:var(--mono);font-size:11px;color:var(--bad);text-align:right;white-space:nowrap}
+.stp-empty{padding:24px;text-align:center;color:var(--mut);font-size:13px}
+/* ---- end ---- */
+/* ---- Seção colapsável (accordion) ---- */
+.sec-toggle{cursor:pointer;user-select:none;transition:.13s;border-radius:10px;padding:6px 10px;margin:0 -10px}
+.sec-toggle:hover{background:var(--panel2)}
+.sec-toggle:hover h3{color:var(--leroy-dk)}
+.toggle-ind{margin-left:auto;font-size:12.5px;font-weight:700;color:#fff;white-space:nowrap;background:var(--leroy);padding:6px 14px;border-radius:20px;box-shadow:0 2px 6px rgba(95,163,46,.25)}
+.sec-toggle:hover .toggle-ind{background:var(--leroy-dk)}
+.sec-collapse{display:none!important}
+.sec-collapse.open{display:grid!important;animation:secOpen .25s ease}
+.sec-collapse.blk.open{display:block!important}
+@keyframes secOpen{from{opacity:0;transform:translateY(-6px)}to{opacity:1;transform:none}}
+/* ---- Criticidade (indicação Maneng) ---- */
+.crit-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:14px;align-items:start}
+.crit-card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:14px;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.crit-card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--bad)}
+.crit-card.lit::before{background:var(--maneng-azul)}
+.crit-card:hover{box-shadow:0 4px 14px rgba(27,38,32,.1);border-color:var(--maneng)}
+.crit-card.open{grid-column:1/-1;cursor:default}
+.crit-card .cc-rank{position:absolute;top:12px;right:14px;font-family:var(--mono);font-size:22px;font-weight:800;color:var(--panel2);line-height:1}
+.crit-card.top3 .cc-rank{color:rgba(214,59,34,.25)}
+.crit-card .cc-nm{font-weight:700;font-size:14px;padding-right:30px;line-height:1.2}
+.crit-card .cc-uf{font-size:10px;color:var(--mut);font-family:var(--mono);margin-top:2px}
+.crit-card .cc-stats{display:flex;gap:14px;margin-top:12px}
+.crit-card .cc-stat b{font-size:19px;font-weight:800;line-height:1;display:block}
+.crit-card .cc-stat small{font-size:9.5px;color:var(--mut);text-transform:uppercase;letter-spacing:.3px}
+.crit-card .cc-oper b{color:var(--leroy-dk)}
+.crit-card .cc-parado b{color:var(--bad)}
+.crit-card .cc-trocar b{color:var(--maneng)}
+.crit-card .cc-expand{margin-top:12px;border-top:1px solid var(--line);padding-top:12px;display:none}
+.crit-card.open .cc-expand{display:block}
+.crit-card .cc-hint{position:absolute;bottom:10px;right:14px;font-size:10px;color:var(--mut2)}
+.crit-card.open .cc-hint{display:none}
+.cc-sechd{font-size:11px;text-transform:uppercase;letter-spacing:.5px;font-weight:700;margin:4px 0 8px}
+.cc-sechd.trocar{color:var(--maneng)}
+.cc-sechd.parado{color:var(--bad)}
+.cc-sechd:not(:first-child){margin-top:16px}
+/* ---- end ---- */
+/* ---- Modal ---- */
+.modal-bg{position:fixed;inset:0;background:rgba(27,38,32,.5);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:90;padding:20px}
+.modal-bg.show{display:flex}
+.modal{background:var(--panel);border-radius:16px;max-width:640px;width:100%;max-height:85vh;display:flex;flex-direction:column;box-shadow:0 20px 60px rgba(27,38,32,.3);overflow:hidden}
+.modal-h{display:flex;align-items:center;justify-content:space-between;padding:18px 22px;border-bottom:1px solid var(--line)}
+.modal-h h3{margin:0;font-size:16px}
+.modal-x{background:none;border:none;font-size:26px;color:var(--mut);cursor:pointer;line-height:1;padding:0 4px}
+.modal-x:hover{color:var(--bad)}
+.modal-body{padding:18px 22px;overflow-y:auto}
+/* obs cards estilo zamp */
+.obs-cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:14px;margin-top:14px}
+.obs-card{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:16px;cursor:pointer;transition:.15s;position:relative;overflow:hidden}
+.obs-card:hover{border-color:var(--bad);transform:translateY(-2px);box-shadow:0 6px 18px rgba(214,59,34,.12)}
+.obs-card.litoral{border-color:var(--maneng-azul)}
+.obs-card .oc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:12px}
+.obs-card .oc-nm{font-weight:700;font-size:14px;line-height:1.25}
+.obs-card .oc-uf{font-size:10px;color:var(--mut);font-family:var(--mono)}
+.obs-card .oc-big{font-size:34px;font-weight:800;color:var(--bad);letter-spacing:-1.5px;line-height:1}
+.obs-card .oc-lbl{font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin-top:2px}
+.obs-card .oc-foot{display:flex;gap:6px;margin-top:12px;flex-wrap:wrap}
+.obs-card .oc-yr{font-size:10.5px;font-family:var(--mono);color:var(--mut);background:var(--panel2);padding:3px 8px;border-radius:6px}
+.modal-maq{display:flex;flex-direction:column;gap:7px}
+.mm-row{display:grid;grid-template-columns:1fr auto auto;gap:12px;align-items:center;padding:10px 13px;background:var(--panel2);border-radius:9px;border-left:3px solid var(--bad)}
+.mm-row.ok{border-left-color:var(--leroy);opacity:.65}
+.mm-row .mm-eq{font-weight:600;font-size:13px}
+.mm-row .mm-eq small{display:block;color:var(--mut);font-size:11px;font-weight:400}
+.mm-row .mm-ano{font-family:var(--mono);font-size:12px;text-align:center}
+.mm-row .mm-idade{font-family:var(--mono);font-size:12px;font-weight:700;color:var(--bad);text-align:right;white-space:nowrap}
+.mm-row.ok .mm-idade{color:var(--leroy-dk)}
+.modal-sub{font-size:12.5px;color:var(--mut);margin-bottom:14px}
+/* ---- end ---- */
+/* ---- Obsolescência ---- */
+.obs-rank{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.obs-row{display:grid;grid-template-columns:34px 1fr 130px 90px 90px;align-items:center;gap:12px;padding:12px 16px;background:var(--panel);border:1px solid var(--line);border-radius:11px;transition:.13s;cursor:pointer}
+.obs-row:hover{border-color:var(--leroy);transform:translateX(2px)}
+.obs-row .pos{font-family:var(--mono);font-size:15px;font-weight:800;color:var(--mut2);text-align:center}
+.obs-row.top3 .pos{color:var(--bad)}
+.obs-row .nm{font-weight:700;font-size:13.5px;display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.obs-row .nm small{font-weight:500;color:var(--mut);font-size:11px;font-family:var(--mono)}
+.obs-bar{height:8px;border-radius:5px;background:var(--panel2);overflow:hidden}
+.obs-bar i{display:block;height:100%;border-radius:5px;background:linear-gradient(90deg,var(--bad),var(--maneng))}
+.obs-row .tr{text-align:center;font-family:var(--mono)}
+.obs-row .tr b{font-size:17px;font-weight:800;color:var(--bad)}
+.obs-row .tr span{font-size:9px;color:var(--mut2);display:block;text-transform:uppercase;letter-spacing:.5px}
+.obs-row .yr{text-align:center;font-family:var(--mono);font-size:11px;color:var(--mut)}
+.tag-litoral{font-size:9px;font-weight:700;color:#fff;background:var(--maneng-azul);padding:2px 7px;border-radius:20px;letter-spacing:.4px}
+.tag-mista{font-size:9px;font-weight:700;color:var(--warn);background:rgba(216,146,14,.13);padding:2px 7px;border-radius:20px}
+.obs-chip{display:inline-flex;align-items:center;gap:6px;padding:7px 13px;margin:4px;background:var(--panel);border:1px solid var(--line);border-radius:9px;font-size:12px}
+.obs-chip b{font-family:var(--mono)}
+.obs-chip .yrs{color:var(--maneng);font-weight:700}
+@media(max-width:720px){.obs-row{grid-template-columns:28px 1fr 60px;gap:8px}.obs-row .obs-barwrap,.obs-row .yr{display:none}}
+/* ---- Obsolescência end ---- */
+/* ---- Cadastro incompleto ---- */
+#cadSec .sec-h .n{color:var(--warn)}
+.cadbadge{display:inline-block;font-size:9.5px;font-weight:700;letter-spacing:.5px;text-transform:uppercase;padding:2px 7px;border-radius:5px;background:rgba(232,178,58,.16);color:var(--warn);margin-left:8px;vertical-align:middle}
+.eqrow.tocad{background:rgba(232,178,58,.05)}
+.namefield{max-width:280px}
+.cad-list{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:11px}
+.cad-item{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid var(--line);border-radius:11px;background:rgba(232,178,58,.04);cursor:pointer;transition:.13s}
+.cad-item:hover{border-color:var(--warn);transform:translateY(-2px)}
+.cad-item .cad-n{font-family:var(--mono);font-size:22px;font-weight:500;color:var(--warn);line-height:1}
+.cad-item .cad-info b{font-size:12.5px;font-weight:700;display:block;line-height:1.2}
+.cad-item .cad-info small{font-size:11px;color:var(--mut);font-family:var(--mono)}
+
+/* ---- Shared new-tab UI ---- */
+.kpis-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:14px}
+.krow{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:16px 18px;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.krow .lab{font-size:11px;letter-spacing:1px;color:var(--mut);text-transform:uppercase;display:flex;align-items:center;gap:7px;margin-bottom:8px}
+.krow .lab i{width:8px;height:8px;border-radius:2px}
+.krow .big{font-family:var(--mono);font-size:28px;font-weight:500;letter-spacing:-1px;line-height:1}
+.krow .sub{font-size:11.5px;color:var(--mut);margin-top:4px}
+.addbar{display:flex;align-items:center;gap:14px;margin-top:18px;flex-wrap:wrap}
+.addbtn{background:var(--leroy);color:#FFFFFF;border:none;border-radius:9px;padding:10px 18px;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--sans)}
+.addbtn:hover{background:var(--leroy-lt)}
+.addbar-hint{font-size:12px;color:var(--mut2)}
+
+/* plano de ação rows */
+.plano-row{display:grid;grid-template-columns:1.3fr 1.4fr repeat(3,1fr);gap:14px;align-items:start;padding:14px 18px;border-bottom:1px solid var(--line)}
+.plano-row:last-child{border-bottom:none}
+.plano-row:hover{background:var(--panel2)}
+.plano-row .pr-loja{font-size:13px;font-weight:700}
+.plano-row .pr-loja small{display:block;font-size:11px;color:var(--mut);font-family:var(--mono);font-weight:400;margin-top:3px}
+.plano-row .pr-prob{font-size:12.5px;color:var(--txt);line-height:1.4}
+.plano-row .pr-prob small{display:block;color:var(--mut);font-size:11px;margin-top:3px}
+.stchip{display:inline-block;font-size:11px;font-weight:600;padding:4px 10px;border-radius:7px;white-space:nowrap}
+.st-prog{background:rgba(232,178,58,.14);color:var(--warn)}
+.st-prop{background:rgba(244,122,32,.14);color:var(--maneng)}
+.st-and{background:rgba(63,167,214,.14);color:#5BB8E0}
+.st-fim{background:rgba(122,193,67,.16);color:var(--leroy)}
+.st-none{background:var(--panel2);color:var(--mut)}
+.plano-col-lbl{font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);margin-bottom:5px}
+
+/* corretivas table */
+.corr-row{display:grid;grid-template-columns:1fr 1.4fr .8fr .8fr .9fr 32px;gap:12px;align-items:center;padding:11px 16px;border-bottom:1px solid var(--line)}
+.corr-row:last-child{border-bottom:none}
+.corr-row:hover{background:var(--panel2)}
+.corr-head{background:var(--panel2);font-size:10.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut);font-weight:700}
+.corr-row input,.corr-row select{width:100%;background:transparent;border:1px solid transparent;border-radius:7px;color:var(--txt);font-family:var(--mono);font-size:12px;padding:6px 8px}
+.corr-row input:hover,.corr-row select:hover{border-color:var(--line)}
+.corr-row input:focus,.corr-row select:focus{border-color:var(--leroy);background:var(--ink);outline:none}
+.corr-row select{font-family:var(--sans);cursor:pointer}
+.corr-row select option{background:var(--panel)}
+.delrow{background:none;border:none;color:var(--mut2);cursor:pointer;font-size:16px;border-radius:6px;width:28px;height:28px}
+.delrow:hover{color:var(--bad);background:rgba(232,83,58,.1)}
+.corr-empty{padding:50px 20px;text-align:center;color:var(--mut)}
+.corr-empty b{display:block;color:var(--txt);font-size:15px;margin-bottom:6px}
+
+/* cronograma grid */
+.cronowrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--r);box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.crono{min-width:760px;width:100%;border-collapse:collapse}
+.crono th{background:var(--panel2);font-size:10.5px;letter-spacing:.5px;text-transform:uppercase;color:var(--mut);font-weight:700;padding:11px 10px;text-align:center;border-bottom:1px solid var(--line);white-space:nowrap}
+.crono th.lj{text-align:left;position:sticky;left:0;background:var(--panel2);z-index:2}
+.crono td{padding:9px 10px;border-bottom:1px solid var(--line);text-align:center;font-family:var(--mono);font-size:12px}
+.crono td.lj{text-align:left;font-family:var(--sans);font-weight:600;font-size:12.5px;position:sticky;left:0;background:var(--panel);z-index:1}
+.crono tr:hover td{background:var(--panel2)}
+.crono tr:hover td.lj{background:var(--panel2)}
+.mcell{width:26px;height:26px;border-radius:7px;border:1.5px solid var(--line);background:var(--panel);cursor:pointer;margin:0 auto;display:flex;align-items:center;justify-content:center;font-size:13px;transition:.12s}
+.mcell.done{background:var(--leroy);border-color:var(--leroy);color:#FFFFFF}
+.mcell.na{opacity:.3;cursor:default}
+.crono input.lj-in{background:transparent;border:1px solid transparent;border-radius:6px;color:var(--txt);font-size:12.5px;font-weight:600;padding:4px 6px;width:140px;font-family:var(--sans)}
+.crono input.lj-in:hover{border-color:var(--line)}
+.crono input.lj-in:focus{border-color:var(--leroy);background:var(--ink);outline:none}
+
+/* ---- Shared new-tab UI end ---- */
+/* ---- Analytics blocks ---- */
+.causabars{display:flex;flex-direction:column;gap:13px}
+.causarow{display:grid;grid-template-columns:1fr;gap:6px}
+.causarow .top{display:flex;align-items:center;justify-content:space-between}
+.causarow .nm{font-size:12.5px;font-weight:600;display:flex;align-items:center;gap:8px}
+.causarow .nm i{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+.causarow .ct{font-family:var(--mono);font-size:12px;color:var(--mut)}
+.causarow .track{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.causarow .fill{height:100%;border-radius:99px;transition:width .8s cubic-bezier(.2,.8,.2,1)}
+
+.urg{display:flex;flex-direction:column;gap:14px}
+.urg-top{display:flex;gap:12px}
+.urg-cell{flex:1;border:1px solid var(--line);border-radius:12px;padding:16px;text-align:center;position:relative;overflow:hidden}
+.urg-cell b{font-family:var(--mono);font-size:30px;font-weight:500;letter-spacing:-1px;line-height:1;display:block}
+.urg-cell small{font-size:11px;color:var(--mut);letter-spacing:.3px;display:block;margin-top:6px;line-height:1.3}
+.urg-cell.crit{background:rgba(232,83,58,.07);border-color:rgba(232,83,58,.3)}
+.urg-cell.crit b{color:var(--bad)}
+.urg-cell.warn2{background:rgba(232,178,58,.06);border-color:rgba(232,178,58,.25)}
+.urg-cell.warn2 b{color:var(--warn)}
+.urg-cell.good b{color:var(--leroy)}
+.urg-stack{height:13px;border-radius:99px;overflow:hidden;display:flex}
+.urg-stack span{height:100%}
+.urg-leg{display:flex;gap:16px;flex-wrap:wrap}
+.urg-leg div{font-size:11px;color:var(--mut);display:flex;align-items:center;gap:6px}
+.urg-leg i{width:9px;height:9px;border-radius:2px}
+
+.tipolist{display:flex;flex-direction:column;gap:10px}
+.tiporow{display:grid;grid-template-columns:1fr 86px 42px;align-items:center;gap:12px}
+.tiporow .nm{font-size:12.5px;font-weight:600}
+.tiporow .nm small{font-family:var(--mono);font-size:10.5px;color:var(--mut2);font-weight:400;margin-left:6px}
+.tiporow .track{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.tiporow .fill{height:100%;border-radius:99px}
+.tiporow .pct{font-family:var(--mono);font-size:12px;text-align:right}
+
+.comstat{display:flex;flex-direction:column;gap:16px}
+.com-cells{display:flex;gap:12px}
+.com-cell{flex:1;border:1px solid var(--line);border-radius:12px;padding:15px 16px}
+.com-cell .ic{font-size:16px;margin-bottom:8px}
+.com-cell b{font-family:var(--mono);font-size:26px;font-weight:500;letter-spacing:-1px;display:block;line-height:1}
+.com-cell small{font-size:11px;color:var(--mut);display:block;margin-top:5px;line-height:1.35}
+.com-cell.prop{background:rgba(244,122,32,.06);border-color:rgba(244,122,32,.25)}
+.com-cell.prop b{color:var(--maneng)}
+.age-bar{display:flex;flex-direction:column;gap:8px}
+.age-bar .lbl{display:flex;justify-content:space-between;font-size:11.5px;color:var(--mut)}
+.age-bar .track{height:9px;border-radius:99px;background:var(--line);overflow:hidden;display:flex}
+.age-bar .track span{height:100%}
+
+/* ---- Store list (home secondary) ---- */
+.storelist{display:grid;grid-template-columns:repeat(auto-fill,minmax(230px,1fr));gap:12px;margin-top:6px}
+.scard{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 16px;cursor:pointer;transition:.15s;position:relative;overflow:hidden;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.scard:hover{border-color:var(--leroy-dk);transform:translateY(-2px)}
+.scard .sc-top{display:flex;justify-content:space-between;align-items:flex-start;gap:8px;margin-bottom:13px}
+.scard .sc-nm{font-size:13px;font-weight:700;line-height:1.25}
+.scard .sc-loja{font-family:var(--mono);font-size:10px;color:var(--mut);margin-top:3px}
+.scard .sc-uf{font-family:var(--mono);font-size:10px;font-weight:500;padding:3px 7px;border-radius:6px;background:var(--panel2);color:var(--mut);flex:0 0 auto}
+.scard .sc-pct{display:flex;align-items:baseline;gap:6px}
+.scard .sc-pct b{font-family:var(--mono);font-size:22px;font-weight:500;letter-spacing:-1px}
+.scard .sc-pct small{font-size:11px;color:var(--mut)}
+.scard .sc-track{height:6px;border-radius:99px;background:var(--line);overflow:hidden;margin-top:10px}
+.scard .sc-fill{height:100%;border-radius:99px}
+
+/* ---- Store detail ---- */
+.detail-head{display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap;margin-bottom:22px;padding-bottom:20px;border-bottom:1px solid var(--line)}
+.detail-head .dh-main h1{font-size:26px;font-weight:800;letter-spacing:-.8px}
+.detail-head .dh-tags{display:flex;gap:9px;margin-top:9px;flex-wrap:wrap}
+.dh-tags .t{font-family:var(--mono);font-size:11px;padding:4px 10px;border-radius:7px;background:var(--panel);border:1px solid var(--line);color:var(--mut)}
+.dh-tags .t b{color:var(--txt);font-weight:500}
+.detail-head .dh-gauge{margin-left:auto;display:flex;align-items:center;gap:16px}
+.dh-gauge .dg-num{text-align:right}
+.dh-gauge .dg-num b{font-family:var(--mono);font-size:30px;font-weight:500;letter-spacing:-1px;line-height:1}
+.dh-gauge .dg-num small{font-size:10px;letter-spacing:1.5px;color:var(--mut);text-transform:uppercase}
+.dh-gauge .dg-bar{width:140px;height:10px;border-radius:99px;background:var(--line);overflow:hidden}
+.dh-gauge .dg-fill{height:100%;border-radius:99px;transition:width .6s}
+
+.eq-toolbar{display:flex;align-items:center;gap:12px;margin-bottom:14px;flex-wrap:wrap}
+.eq-toolbar .amb-chip{font-size:12px;padding:6px 12px;border-radius:99px;background:var(--panel);border:1px solid var(--line);color:var(--mut);cursor:pointer;transition:.13s}
+.eq-toolbar .amb-chip:hover{color:var(--txt)}
+.eq-toolbar .amb-chip.on{background:var(--leroy);color:#FFFFFF;border-color:var(--leroy);font-weight:600}
+
+.eqtable{border:1px solid var(--line);border-radius:var(--r);overflow:hidden;box-shadow:0 1px 3px rgba(27,38,32,.05),0 1px 2px rgba(27,38,32,.03)}
+.eqgroup-h{background:var(--panel2);padding:9px 18px;font-size:11px;letter-spacing:1.5px;text-transform:uppercase;color:var(--leroy-lt);font-weight:700;border-bottom:1px solid var(--line);display:flex;align-items:center;gap:9px}
+.eqgroup-h .cnt{margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--mut);letter-spacing:0;text-transform:none}
+.eqrow{display:grid;grid-template-columns:1.4fr .9fr .9fr 70px 1fr auto;gap:14px;align-items:center;padding:13px 18px;border-bottom:1px solid var(--line);transition:.13s}
+.eqrow:last-child{border-bottom:none}
+.eqrow:hover{background:var(--panel2)}
+.eqrow.dead{background:rgba(232,83,58,.045)}
+.eqcol-lbl{display:none}
+.eqhead-row{background:var(--panel2);padding:8px 18px!important;font-size:10px;letter-spacing:.8px;text-transform:uppercase;color:var(--mut2);font-weight:700;border-bottom:1px solid var(--line)}
+.eqhead-row:hover{background:var(--panel2)!important}
+.eq-eq{font-size:13px;font-weight:600}
+.eq-eq .obs{font-size:11px;color:var(--warn);margin-top:3px;font-weight:400;line-height:1.3}
+.eqfield{width:100%;background:transparent;border:1px solid transparent;border-radius:7px;color:var(--txt);font-family:var(--mono);font-size:12px;padding:6px 8px;transition:.13s}
+.eqfield:hover{border-color:var(--line)}
+.eqfield:focus{border-color:var(--leroy);background:var(--ink);outline:none}
+.eqfield::placeholder{color:var(--mut2)}
+.circs{display:flex;gap:6px}
+.circ{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel);color:var(--mut);font-family:var(--mono);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;position:relative}
+.circ:hover{border-color:var(--mut)}
+.circ.ok{background:var(--leroy);border-color:var(--leroy);color:#FFFFFF}
+.circ.ok::after{content:"";position:absolute;inset:0;border-radius:7px;box-shadow:0 0 12px rgba(120,190,32,.4)}
+.eq-state{display:flex;align-items:center;gap:10px;justify-content:flex-end}
+.eq-pct{font-family:var(--mono);font-size:13px;font-weight:500;width:42px;text-align:right}
+.allok{font-size:11px;font-weight:600;padding:6px 11px;border-radius:8px;border:1px solid var(--leroy-dk);background:transparent;color:var(--leroy);cursor:pointer;transition:.13s;white-space:nowrap;font-family:var(--sans)}
+.allok:hover{background:var(--leroy);color:#FFFFFF}
+
+.savebar{position:fixed;bottom:0;left:0;right:0;z-index:60;background:rgba(255,255,255,.98);backdrop-filter:blur(12px);border-top:1px solid var(--leroy-dk);
+  transform:translateY(120%);transition:transform .3s cubic-bezier(.2,.8,.2,1)}
+.savebar.show{transform:none}
+.savebar-in{max-width:1280px;margin:0 auto;padding:14px 22px;display:flex;align-items:center;gap:16px}
+.savebar .msg{font-size:13px;color:var(--mut)}
+.savebar .msg b{color:var(--txt)}
+.savebar button{margin-left:auto;padding:10px 22px;border-radius:9px;border:none;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--sans)}
+.savebar .save{background:var(--leroy);color:#FFFFFF}
+.savebar .save:hover{background:var(--leroy-lt)}
+.savebar .save:disabled{opacity:.5;cursor:wait}
+.savebar .undo{background:transparent;color:var(--mut);margin-left:0}
+
+.empty{padding:60px 20px;text-align:center;color:var(--mut)}
+.empty b{display:block;font-size:15px;color:var(--txt);margin-bottom:6px}
+
+.foot{max-width:1280px;margin:30px auto 0;padding:22px;border-top:1px solid var(--line);display:flex;align-items:center;gap:14px;flex-wrap:wrap;font-size:12px;color:var(--mut2)}
+.foot b{color:var(--mut)}
+.toast{position:fixed;bottom:90px;left:50%;transform:translateX(-50%) translateY(20px);background:var(--panel2);border:1px solid var(--leroy-dk);color:var(--txt);padding:12px 20px;border-radius:10px;font-size:13px;opacity:0;pointer-events:none;transition:.3s;z-index:70}
+.toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+.toast.err{border-color:var(--bad)}
+
+@media(max-width:720px){
+  .eqrow{grid-template-columns:1fr 1fr;gap:8px 14px;padding:14px 16px}
+  .eqhead-row{display:none}
+  .eqcol-lbl{display:block;font-size:9.5px;letter-spacing:1px;text-transform:uppercase;color:var(--mut2);margin-bottom:3px}
+  .eq-eq{grid-column:1/-1}
+  .eq-state{grid-column:1/-1;justify-content:space-between}
+  .dial{flex-direction:column;text-align:center}
+  .dial-meta .row{justify-content:center}
+}
+</style>
+</head>
+<body>
+
+<header class="top">
+  <div class="top-in">
+    <div class="brand">
+      <div class="logo-m">
+        <b><em>MAN</em><span>ENG</span></b>
+        <small>Refrigeração &amp; Climatização</small>
+      </div>
+    </div>
+    <div class="cli">
+      <div class="cli-tag"><span class="cli-dot"></span><b>Leroy Merlin</b><small>CLIENTE</small></div>
+      <div class="sync" id="sync"><span class="pip"></span><span id="syncTxt">conectando…</span></div>
+    </div>
+  </div>
+</header>
+
+<nav class="nav">
+  <div class="nav-in" id="navIn">
+    <button class="tab home on" data-view="home">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 12l9-9 9 9M5 10v10h14V10"/></svg>
+      Visão Geral
+    </button>
+    <button class="tab" data-view="plano">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 11l3 3 8-8M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/></svg>
+      Plano de Ação
+    </button>
+    <button class="tab" data-view="corretivas">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a4 4 0 0 0-5.4 5.4L3 18v3h3l6.3-6.3a4 4 0 0 0 5.4-5.4l-2.1 2.1-2.8-.7-.7-2.8z"/></svg>
+      Corretivas &amp; Propostas
+    </button>
+    <button class="tab" data-view="preventivas">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><path d="M16 2v4M8 2v4M3 10h18"/></svg>
+      Preventiva · Cronograma
+    </button>
+    <button class="tab" data-view="obsolescencia">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v4M12 18v4M2 12h4M18 12h4M4.9 4.9l2.8 2.8M16.3 16.3l2.8 2.8M4.9 19.1l2.8-2.8M16.3 7.7l2.8-2.8"/><circle cx="12" cy="12" r="3"/></svg>
+      Troca por Obsolescência
+    </button>
+    <div class="searchwrap">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4-4"/></svg>
+      <input id="search" placeholder="Buscar loja…" autocomplete="off">
+    </div>
+  </div>
+</nav>
+
+<main class="wrap">
+  <!-- HOME -->
+  <section class="view on" id="view-home">
+    <div class="hero">
+      <div class="dial">
+        <div class="gauge" id="homeGauge"></div>
+        <div class="dial-meta">
+          <h1>Operação da rede</h1>
+          <p>Percentual de circuitos em funcionamento no parque de climatização das 56 lojas Leroy Merlin — Maneng Refrigeração.</p>
+          <div class="row">
+            <div class="g"><b id="hFunc">—</b><small>Funcionando</small></div>
+            <div class="r"><b id="hParado">—</b><small>Parados</small></div>
+          </div>
+        </div>
+      </div>
+      <div class="kpis">
+        <div class="kpi kpi-click" id="kpiLojas">
+          <div class="lab"><i style="background:var(--leroy)"></i>Lojas monitoradas <span class="kpi-cta">▾ abrir uma</span></div>
+          <div class="big" id="kLojas">—</div>
+          <div class="sub" id="kLojasSub">clique e escolha uma unidade</div>
+          <select id="lojaSelect" class="loja-select"><option value="">Selecione uma loja…</option></select>
+        </div>
+        <div class="kpi">
+          <div class="lab"><i style="background:var(--maneng)"></i>Equipamentos</div>
+          <div class="big" id="kEquip">—</div>
+          <div class="sub" id="kEquipSub">máquinas catalogadas</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec" id="areasSec">
+      <div class="sec-h"><span class="n">/</span><h2>Status por área</h2><span class="hint">meta 100% em todas · Salão é prioridade</span></div>
+      <div class="areas-grid">
+        <div class="area-card geral">
+          <div class="gauge" id="areaGeralG"></div>
+          <div class="area-cap"><b>Status Geral</b><small>Salão + ADM + Exaustão</small><span class="area-sub" id="areaGeralSub"></span></div>
+        </div>
+        <div class="area-card salao">
+          <div class="gauge" id="areaSalaoG"></div>
+          <div class="area-cap"><b>Salão de Vendas</b><small>o que o cliente vê</small><span class="area-sub" id="areaSalaoSub"></span></div>
+        </div>
+        <div class="area-card">
+          <div class="gauge" id="areaAdmG"></div>
+          <div class="area-cap"><b>Administrativo</b><small>salas, refeitório, CPD…</small><span class="area-sub" id="areaAdmSub"></span></div>
+        </div>
+        <div class="area-card">
+          <div class="gauge" id="areaExtG"></div>
+          <div class="area-cap"><b>Exaustão &amp; Ventilação</b><small>exaustores, telhado</small><span class="area-sub" id="areaExtSub"></span></div>
+        </div>
+      </div>
+      <div class="concentra" id="concentraBox"></div>
+    </div>
+
+    <div class="sec" id="salaoSec">
+      <div class="sec-h"><span class="n">★</span><h2>Salão de Vendas — área prioritária</h2><span class="hint">o que o cliente vê · meta: 100%</span></div>
+      <div class="salao-hero">
+        <div class="salao-compare">
+          <div class="sc-gauge">
+            <div class="gauge" id="salaoGauge"></div>
+            <div class="sc-cap"><b>Salão de Vendas</b><small id="salaoSub">— circuitos</small><span class="sc-meta" id="salaoMeta"></span></div>
+          </div>
+          <div class="sc-vs">vs</div>
+          <div class="sc-gauge">
+            <div class="gauge" id="outrasGauge"></div>
+            <div class="sc-cap"><b>Demais áreas</b><small id="outrasSub">— circuitos</small><span class="sc-meta" id="outrasMeta"></span></div>
+          </div>
+        </div>
+        <div class="salao-side">
+          <div class="salao-kpi crit"><b id="salaoParados">—</b><small>circuitos parados no salão</small></div>
+          <div class="salao-kpi"><b id="salaoLojas">—</b><small>lojas com salão monitorado</small></div>
+          <div class="salao-gap" id="salaoGap"></div>
+        </div>
+      </div>
+      <div class="grid2" style="margin-top:18px">
+        <div class="card">
+          <h3><span style="color:var(--bad)">▼</span> Piores lojas no Salão <span class="pill">prioridade de visita</span></h3>
+          <div class="rank" id="salaoWorst"></div>
+        </div>
+        <div class="card">
+          <h3>Equipamentos do Salão por tipo <span class="pill" id="salaoTipoHint"></span></h3>
+          <div class="tipolist" id="salaoTipo"></div>
+        </div>
+      </div>
+      <div class="card" style="margin-top:18px">
+        <h3>Causas das paradas no Salão de Vendas <span class="pill" id="salaoCausaHint"></span></h3>
+        <div class="causabars" id="salaoCausa"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="grid2">
+        <div class="card">
+          <h3><span style="color:var(--bad)">▼</span> Top 10 — mais problemas <span class="pill">menor operação</span></h3>
+          <div class="rank" id="rankWorst"></div>
+        </div>
+        <div class="card">
+          <h3><span style="color:var(--leroy)">▲</span> Top 10 — melhores lojas <span class="pill">maior operação</span></h3>
+          <div class="rank" id="rankBest"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h"><span class="n">/</span><h2>Pareto de lojas críticas</h2><span class="hint">onde concentram os itens parados · regra 80/20</span></div>
+      <div class="card">
+        <div class="pareto" id="paretoBox"></div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h sec-toggle" data-toggle="salaoTipoWrap"><span class="n">/</span><h2>Máquinas paradas no Salão por tipo</h2><span class="hint">selecione um tipo para ver quais estão fora</span><span class="toggle-ind" id="ind-salaoTipoWrap">▸ Clique para ver</span></div>
+      <div class="sec-collapse blk" id="salaoTipoWrap">
+        <div class="card">
+          <div class="salaotipo-head">
+            <select id="salaoTipoSel" class="loja-select" style="max-width:340px"></select>
+            <span class="salaotipo-resumo" id="salaoTipoResumo"></span>
+          </div>
+          <div class="salaotipo-list" id="salaoTipoList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="card">
+        <h3>Urgência da rede <span class="pill">por equipamento</span></h3>
+        <div class="urg" id="urgBlock"></div>
+      </div>
+    </div>
+
+    <div class="sec" id="cadSec">
+      <div class="sec-h sec-toggle" data-toggle="cadWrap"><span class="n">!</span><h2>Lojas com cadastro incompleto</h2><span class="hint">equipamentos sem ficha — precisam ser cadastrados</span><span class="toggle-ind" id="ind-cadWrap">▸ Clique para ver</span></div>
+      <div class="sec-collapse blk" id="cadWrap">
+        <div class="card">
+          <div class="cad-list" id="cadList"></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="sec">
+      <div class="sec-h sec-toggle" data-toggle="storeWrap"><span class="n">/</span><h2>Todas as unidades</h2><span class="hint">clique para abrir e editar</span><span class="toggle-ind" id="ind-storeWrap">▸ Clique para ver</span></div>
+      <div class="sec-collapse blk" id="storeWrap">
+        <div class="storelist" id="storeList"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- STORE DETAIL -->
+  <section class="view" id="view-store"></section>
+
+  <!-- PLANO DE AÇÃO -->
+  <section class="view" id="view-plano">
+    <div class="sec-h" style="margin-bottom:18px"><span class="n">/</span><h2>Plano de Ação — Corretivas</h2><span class="hint" id="planoHint"></span></div>
+    <div class="kpis-row" id="planoKpis"></div>
+    <div class="eq-toolbar" id="planoFilter" style="margin-top:18px"></div>
+    <div class="eqtable" id="planoTable" style="margin-top:6px"></div>
+  </section>
+
+  <!-- CORRETIVAS & PROPOSTAS -->
+  <section class="view" id="view-corretivas">
+    <div class="sec-h" style="margin-bottom:18px"><span class="n">/</span><h2>Corretivas &amp; Propostas</h2><span class="hint">orçamentos, valores e status comercial</span></div>
+    <div class="uploadbar">
+      <label class="uploadbtn">📤 Subir CSV
+        <input type="file" id="corrCsv" accept=".csv,.txt" hidden>
+      </label>
+      <button class="ghostbtn" id="corrTemplate">↓ Baixar modelo CSV</button>
+      <button class="ghostbtn" id="corrAdd">+ Linha manual</button>
+      <span class="addbar-hint" id="corrSrc">nenhum arquivo carregado — usando dados salvos</span>
+    </div>
+    <div class="kpis-row" id="corrKpis" style="margin-top:16px"></div>
+    <div class="filterbar" id="corrFilters"></div>
+    <div class="chartgrid" id="corrCharts"></div>
+    <div class="eqtable" id="corrTable" style="margin-top:18px"></div>
+  </section>
+
+  <!-- PREVENTIVA / CRONOGRAMA -->
+  <section class="view" id="view-preventivas">
+    <div class="sec-h" style="margin-bottom:18px"><span class="n">/</span><h2>Preventiva — Leroy Merlin Brasil</h2><span class="hint">execuções e datas de atendimento por loja</span></div>
+    <div class="uploadbar">
+      <label class="uploadbtn">📤 Subir CSV
+        <input type="file" id="prevCsv" accept=".csv,.txt" hidden>
+      </label>
+      <button class="ghostbtn" id="prevTemplate">↓ Baixar modelo CSV</button>
+      <span class="addbar-hint" id="prevSrc">nenhum arquivo carregado — usando dados salvos</span>
+    </div>
+    <div class="kpis-row" id="prevKpis" style="margin-top:16px"></div>
+    <div class="filterbar" id="prevFilters"></div>
+    <div class="chartgrid" id="prevCharts"></div>
+    <div class="eqtable" id="prevTable" style="margin-top:18px"></div>
+  </section>
+
+  <!-- TROCA POR OBSOLESCÊNCIA -->
+  <section class="view" id="view-obsolescencia">
+    <div class="sec-h" style="margin-bottom:18px"><span class="n">/</span><h2>Troca por Obsolescência — Salão de Vendas</h2><span class="hint">apenas salão · demais máquinas fora deste ciclo</span></div>
+    <div class="kpis-row" id="obsKpis"></div>
+
+    <div class="sec" style="margin-top:20px">
+      <div class="sec-h sec-toggle" data-toggle="critWrap"><span class="n">/</span><h3 style="margin:0">🔧 Criticidade — Indicação Maneng</h3><span class="hint">risco de quebra repentina · ordem técnica</span><span class="toggle-ind" id="ind-critWrap">▸ Clique para ver</span></div>
+      <div class="crit-cards sec-collapse" id="critWrap"><div id="critCards" style="display:contents"></div></div>
+    </div>
+
+    <div class="sec" style="margin-top:20px">
+      <div class="sec-h sec-toggle" data-toggle="obsWrap"><span class="n">/</span><h3 style="margin:0">⏱️ Criticidade — Tempo de vida útil</h3><span class="hint">litoral +5 anos · demais +10 anos</span><span class="toggle-ind" id="ind-obsWrap">▸ Clique para ver</span></div>
+      <div class="crit-cards sec-collapse" id="obsWrap"><div id="obsCards" style="display:contents"></div></div>
+    </div>
+
+    <div class="sec" style="margin-top:20px">
+      <div class="sec-h"><span class="n">/</span><h3 style="margin:0">Ranking de prioridade de troca</h3><span class="hint">por tempo de vida útil</span></div>
+      <div class="obs-rank" id="obsRank"></div>
+    </div>
+    <div class="chartgrid" id="obsCharts" style="margin-top:20px"></div>
+    <div class="sec" style="margin-top:20px">
+      <div class="sec-h"><span class="n">/</span><h3 style="margin:0">Lojas e Anos dos equipamentos</h3><span class="hint">todas as lojas · anos de fabricação do salão</span></div>
+      <div id="obsMistas"></div>
+    </div>
+    <div class="sec" style="margin-top:20px">
+      <div class="sec-h"><span class="n">/</span><h3 style="margin:0">Cadastro de ano a levantar</h3><span class="hint">máquinas do salão sem ano de fabricação na planilha</span></div>
+      <div id="obsSemAno"></div>
+    </div>
+  </section>
+</main>
+
+<div class="savebar" id="savebar">
+  <div class="savebar-in">
+    <div class="msg"><b id="saveCount">0</b> alterações pendentes nesta loja</div>
+    <button class="undo" id="undoBtn">Desfazer</button>
+    <button class="save" id="saveBtn">Salvar na planilha</button>
+  </div>
+</div>
+
+<div class="modal-bg" id="modalBg" onclick="closeModal(event)">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-h"><h3 id="modalTitle"></h3><button class="modal-x" onclick="closeModal()">×</button></div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+<div class="toast" id="toast"></div>
+
+<footer class="foot">
+  <b>Maneng × Leroy Merlin</b>
+  <span>Base sincronizada via Google Sheets · snapshot diário <b id="footDate">—</b></span>
+  <span style="margin-left:auto" id="footSrc">fonte: snapshot local</span>
+</footer>
+
+<script>
+/* ====================== CONFIG ====================== */
+// Cole aqui a URL /exec do Web App do Apps Script (deixe vazio p/ usar só snapshot)
+const SCRIPT_URL = localStorage.getItem('leroy_script_url') || "";
+const SNAPSHOT_URL = "data.json"; // snapshot regenerado 1x/dia pela GitHub Action
+
+/* ====================== STATE ====================== */
+let DB = null;            // {gerado, stores:[], uf:[]}
+let storeIndex = {};      // sheet -> store
+let pending = {};         // edits not yet saved for current store
+let pendingGeneric = {};  // pending changes in plano/corretivas/preventivas
+let currentStore = null;
+
+/* ====================== UTIL ====================== */
+const $ = s=>document.querySelector(s);
+const $$ = s=>[...document.querySelectorAll(s)];
+const esc = s=>(s==null?'':String(s)).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function pctColor(p){return p>=95?'var(--ok)':p>=80?'var(--leroy-dk)':p>=60?'var(--warn)':'var(--bad)';}
+function storePct(s){let t=0,o=0;s.equip.forEach(e=>e.c.forEach(c=>{t++;if(c.k)o++;}));return t?Math.round(100*o/t):100;}
+function storeCounts(s){let t=0,o=0;s.equip.forEach(e=>e.c.forEach(c=>{t++;if(c.k)o++;}));return{t,o,p:t-o};}
+
+function ringSVG(pct,size,stroke,showText){
+  const r=(size-stroke)/2, c=2*Math.PI*r, off=c*(1-pct/100);
+  return `<svg width="${size}" height="${size}">
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="var(--line)" stroke-width="${stroke}"/>
+    <circle cx="${size/2}" cy="${size/2}" r="${r}" fill="none" stroke="${pctColor(pct)}" stroke-width="${stroke}"
+      stroke-linecap="round" stroke-dasharray="${c}" stroke-dashoffset="${off}" style="transition:stroke-dashoffset 1s cubic-bezier(.2,.8,.2,1)"/>
+  </svg>${showText?`<div class="val"><b style="color:${pctColor(pct)}">${pct}<span style="font-size:.5em">%</span></b><small>operando</small></div>`:''}`;
+}
+
+/* ====================== LOAD ====================== */
+async function boot(){
+  // 1. snapshot first (fast paint) — usa snapshot embutido se existir (preview/offline), senão busca data.json
+  try{
+    if(typeof window!=='undefined' && window.__SNAPSHOT__){ DB = window.__SNAPSHOT__; }
+    else { const r = await fetch(SNAPSHOT_URL,{cache:'no-store'}); DB = await r.json(); }
+    indexDB(); render(); setSync('snapshot');
+  }catch(e){
+    if(typeof window!=='undefined' && window.__SNAPSHOT__){ DB=window.__SNAPSHOT__; indexDB(); render(); setSync('snapshot'); }
+    else { $('#storeList').innerHTML='<div class="empty"><b>Sem dados</b>Não foi possível carregar o snapshot. Abra via servidor ou use o preview.</div>'; }
+  }
+  // 2. live overlay from Apps Script
+  if(SCRIPT_URL){ pullLive(); }
+}
+function indexDB(){
+  storeIndex={};
+  DB.stores.forEach(s=>storeIndex[s.sheet]=s);
+  $('#footDate').textContent = DB.gerado||'—';
+  // recupera corretivas/preventivas salvas localmente se a planilha ainda não as tiver
+  try{
+    if((!DB.corretivas||!DB.corretivas.length)){const lc=localStorage.getItem('leroy_corretivas');if(lc)DB.corretivas=JSON.parse(lc);}
+    if((!DB.preventivas||!DB.preventivas.length)){const lp=localStorage.getItem('leroy_preventivas');if(lp)DB.preventivas=JSON.parse(lp);}
+  }catch(e){}
+  if(!DB.corretivas)DB.corretivas=[];
+  if(!DB.preventivas)DB.preventivas=[];
+}
+function setSync(mode){
+  const el=$('#sync'),t=$('#syncTxt');
+  el.className='sync';
+  if(mode==='live'){el.classList.add('live');t.textContent='sincronizado ao vivo';$('#footSrc').textContent='fonte: Google Sheets (ao vivo)';}
+  else if(mode==='snapshot'){t.textContent='snapshot do dia';}
+  else if(mode==='saving'){el.classList.add('live');t.textContent='salvando…';}
+  else if(mode==='err'){el.classList.add('err');t.textContent='offline — usando snapshot';}
+}
+
+/* live read via JSONP (contorna CORS, igual Cronograma-Zamp) */
+function pullLive(){
+  const cb='__leroy_'+Date.now();
+  window[cb]=(resp)=>{
+    try{
+      if(resp&&resp.stores){ DB=resp; indexDB(); render(); if(currentStore)openStore(currentStore,true); setSync('live'); }
+    }catch(e){setSync('err');}
+    delete window[cb]; sc.remove();
+  };
+  const sc=document.createElement('script');
+  sc.src=SCRIPT_URL+(SCRIPT_URL.includes('?')?'&':'?')+'action=read&callback='+cb;
+  sc.onerror=()=>{setSync('err');delete window[cb];sc.remove();};
+  document.head.appendChild(sc);
+  setTimeout(()=>{if(window[cb]){setSync('err');delete window[cb];sc.remove&&sc.remove();}},9000);
+}
+
+/* ====================== RENDER HOME ====================== */
+function render(){
+  const stores=DB.stores;
+  let T=0,O=0; stores.forEach(s=>{const c=storeCounts(s);T+=c.t;O+=c.o;});
+  const P=T?Math.round(100*O/T):0;
+  const hg=$('#homeGauge'); if(hg)hg.innerHTML=ringSVG(P,150,14,true);
+  const hf=$('#hFunc'),hp=$('#hParado');
+  if(hf)hf.textContent=O.toLocaleString('pt-BR');
+  if(hp)hp.textContent=(T-O).toLocaleString('pt-BR');
+  $('#kLojas').textContent=stores.length;
+  // popular dropdown de lojas (ordenado por nome)
+  const sel=$('#lojaSelect');
+  if(sel){
+    const cur=sel.value;
+    sel.innerHTML='<option value="">Selecione uma loja…</option>'+
+      [...stores].sort((a,b)=>a.title.localeCompare(b.title))
+      .map(s=>`<option value="${esc(s.sheet)}">${esc(s.title.replace(/^LEROY MERLIN /i,''))} — ${storePct(s)}%</option>`).join('');
+    sel.value=cur;
+  }
+  let eqCount=stores.reduce((a,s)=>a+s.equip.length,0);
+  $('#kEquip').textContent=eqCount.toLocaleString('pt-BR');
+  // rankings
+  const ranked=stores.map(s=>({s,p:storePct(s)}));
+  const worst=[...ranked].sort((a,b)=>a.p-b.p).slice(0,10);
+  const best=[...ranked].sort((a,b)=>b.p-a.p||a.s.equip.length-b.s.equip.length).slice(0,10);
+  $('#rankWorst').innerHTML=worst.map((x,i)=>rankRow(x,i)).join('');
+  $('#rankBest').innerHTML=best.map((x,i)=>rankRow(x,i)).join('');
+  // status por área (4 indicadores)
+  renderAreas();
+  // concentração
+  renderConcentra();
+  // salão de vendas (área prioritária)
+  renderSalao();
+  // pareto de lojas críticas
+  renderPareto();
+  // máquinas paradas do salão por tipo
+  renderSalaoTipo();
+  // cadastro incompleto
+  renderCadastro();
+  // analytics
+  renderAnalytics();
+  // accordions da visão geral
+  bindSecToggles();
+  // store list
+  $('#storeList').innerHTML=[...ranked].sort((a,b)=>a.s.title.localeCompare(b.s.title)).map(x=>storeCard(x)).join('');
+  bindHome();
+  // nav store tabs (compact: only via list/search, keep nav clean)
+}
+function rankRow(x,i){
+  const p=x.p,col=pctColor(p);
+  return `<div class="rrow" data-go="${esc(x.s.sheet)}">
+    <span class="pos">${String(i+1).padStart(2,'0')}</span>
+    <span class="nm"><b>${esc(x.s.title.replace(/^LEROY MERLIN /i,''))}</b><small>${esc(x.s.loja||x.s.uf||'')}</small></span>
+    <span class="bar"><span class="track"><span class="fill" style="width:${p}%;background:${col}"></span></span><span class="pct" style="color:${col}">${p}%</span></span>
+  </div>`;
+}
+function storeCard(x){
+  const p=x.p,col=pctColor(p),nm=x.s.title.replace(/^LEROY MERLIN /i,'');
+  return `<div class="scard" data-go="${esc(x.s.sheet)}">
+    <div class="sc-top">
+      <div><div class="sc-nm">${esc(nm)}</div><div class="sc-loja">${esc(x.s.loja||'—')} · ${esc(x.s.spv||'—')}</div></div>
+      <div class="sc-uf">${esc(x.s.uf||'')}</div>
+    </div>
+    <div class="sc-pct"><b style="color:${col}">${p}%</b><small>${x.s.equip.length} equip.</small></div>
+    <div class="sc-track"><div class="sc-fill" style="width:${p}%;background:${col}"></div></div>
+  </div>`;
+}
+/* ====================== CADASTRO INCOMPLETO ====================== */
+function renderCadastro(){
+  const faltam=DB.stores.filter(s=>(s.cadFalta||0)>0||s.equip.some(e=>e.cad)).map(s=>({
+    s, n: s.equip.filter(e=>e.cad).length
+  })).filter(x=>x.n>0).sort((a,b)=>b.n-a.n);
+  const sec=$('#cadSec');
+  if(!faltam.length){ if(sec)sec.style.display='none'; return; }
+  if(sec)sec.style.display='';
+  $('#cadList').innerHTML=faltam.map(x=>`
+    <div class="cad-item" data-go="${esc(x.s.sheet)}">
+      <span class="cad-n">${x.n}</span>
+      <span class="cad-info"><b>${esc(x.s.title.replace(/^LEROY MERLIN /i,''))}</b><small>${esc(x.s.uf||'')} · a cadastrar</small></span>
+    </div>`).join('');
+}
+
+/* ====================== PLANO DE AÇÃO ====================== */
+function stClass(s){
+  const t=(s||'').toLowerCase();
+  if(t.includes('finaliz')) return 'st-fim';
+  if(t.includes('proposta')||t.includes('enviada')) return 'st-prop';
+  if(t.includes('andamento')) return 'st-and';
+  if(t.includes('programar')||t.includes('aguard')) return 'st-prog';
+  return 'st-none';
+}
+let planoFilterSt='__all';
+function renderPlano(){
+  const plano=DB.plano||[];
+  $('#planoHint').textContent=plano.length+' itens · fonte: aba Plano de Ação';
+  // kpis by maneng status
+  const byst={};
+  plano.forEach(p=>{const k=p.maneng||'—';byst[k]=(byst[k]||0)+1;});
+  const order=['Proposta Enviada','Em Andamento','Programar Atividade','Finalizado'];
+  $('#planoKpis').innerHTML=order.filter(k=>byst[k]).map(k=>`
+    <div class="krow"><div class="lab"><i class="${stClass(k)}" style="background:currentColor"></i>${esc(k)}</div>
+    <div class="big">${byst[k]}</div><div class="sub">ações Maneng</div></div>`).join('');
+  // filter chips
+  const sts=['__all',...order.filter(k=>byst[k])];
+  $('#planoFilter').innerHTML=sts.map(s=>`<span class="amb-chip ${s===planoFilterSt?'on':''}" data-st="${esc(s)}">${s==='__all'?'Todos':esc(s)}</span>`).join('');
+  $$('#planoFilter .amb-chip').forEach(ch=>ch.onclick=()=>{planoFilterSt=ch.dataset.st;renderPlano();});
+  // table
+  const rows=plano.filter(p=>planoFilterSt==='__all'||p.maneng===planoFilterSt);
+  $('#planoTable').innerHTML=`
+    <div class="plano-row corr-head">
+      <div>Loja</div><div>Problema / Ação</div><div>Maneng</div><div>Leroy</div><div>Diel</div>
+    </div>`+rows.map(p=>`
+    <div class="plano-row">
+      <div class="pr-loja">${esc(p.loja)}<small>${esc(p.reuniao||'')}</small></div>
+      <div class="pr-prob">${esc(p.problema)}${p.data?`<small>📅 ${esc(p.data)}</small>`:''}</div>
+      <div><span class="stchip ${stClass(p.maneng)}">${esc(p.maneng||'—')}</span></div>
+      <div><span class="stchip ${stClass(p.leroy)}">${esc(p.leroy||'—')}</span></div>
+      <div><span class="stchip ${stClass(p.diel)}">${esc(p.diel||'—')}</span></div>
+    </div>`).join('')||'<div class="corr-empty">Nenhum item neste filtro.</div>';
+}
+
+/* ====================== CSV HELPERS ====================== */
+function parseCSV(text){
+  const firstLine=text.slice(0,2000).split(/\r?\n/)[0]||'';
+  const sep=(firstLine.split(';').length>firstLine.split(',').length)?';':',';
+  const rows=[];let i=0,field='',row=[],inQ=false;
+  while(i<text.length){
+    const ch=text[i];
+    if(inQ){
+      if(ch==='"'){ if(text[i+1]==='"'){field+='"';i++;} else inQ=false; }
+      else field+=ch;
+    }else{
+      if(ch==='"')inQ=true;
+      else if(ch===sep){row.push(field);field='';}
+      else if(ch==='\n'){row.push(field);rows.push(row);row=[];field='';}
+      else if(ch==='\r'){}
+      else field+=ch;
+    }
+    i++;
+  }
+  if(field.length||row.length){row.push(field);rows.push(row);}
+  return rows.filter(r=>r.some(c=>String(c).trim()!==''));
+}
+function csvToObjects(text){
+  const rows=parseCSV(text);
+  if(!rows.length)return [];
+  const head=rows[0].map(h=>String(h).trim());
+  return rows.slice(1).map(r=>{const o={};head.forEach((h,i)=>o[h]=(r[i]!==undefined?String(r[i]).trim():''));return o;});
+}
+function findCol(obj,cands){
+  const keys=Object.keys(obj);
+  for(const c of cands){
+    const k=keys.find(k=>k.toLowerCase().replace(/[^a-zà-ú0-9]/gi,'').includes(c));
+    if(k)return k;
+  }
+  return null;
+}
+function parseValor(v){
+  if(v==null)return 0;
+  let s=String(v).replace(/[^\d.,-]/g,'');
+  if(s.includes(',')&&s.includes('.')){ s=s.replace(/\./g,'').replace(',','.'); }
+  else if(s.includes(',')){ s=s.replace(',','.'); }
+  return parseFloat(s)||0;
+}
+function parseMes(v){
+  if(!v)return '';
+  const s=String(v).trim();
+  let m=/(\d{4})-(\d{1,2})/.exec(s); if(m)return m[1]+'-'+m[2].padStart(2,'0');
+  m=/(\d{1,2})[\/\-](\d{1,2})[\/\-](\d{2,4})/.exec(s);
+  if(m){let y=m[3];if(y.length===2)y='20'+y;return y+'-'+m[2].padStart(2,'0');}
+  return '';
+}
+const BRL=v=>v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'});
+function downloadCSV(name,content){
+  const blob=new Blob(['\ufeff'+content],{type:'text/csv;charset=utf-8'});
+  const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download=name;a.click();
+}
+function hbar(items,colorFn,fmt){
+  const max=Math.max(1,...items.map(x=>x.v));
+  return `<div class="hbar">`+items.map(x=>`
+    <div class="hbar-row"><span class="nm" title="${esc(x.k)}">${esc(x.k)}</span>
+    <span class="track"><span class="fill" style="width:${Math.round(100*x.v/max)}%;background:${colorFn?colorFn(x):'var(--leroy)'}"></span></span>
+    <span class="vv">${fmt?fmt(x.v):x.v}</span></div>`).join('')+`</div>`;
+}
+function vbar(items,colorFn,fmt){
+  const max=Math.max(1,...items.map(x=>x.v));
+  return `<div class="vbar">`+items.map(x=>`
+    <div class="vbar-col"><div class="bar" style="height:${Math.round(100*x.v/max)}%;background:${colorFn?colorFn(x):'var(--maneng-azul)'}"><span class="bv">${fmt?fmt(x.v):x.v}</span></div><span class="bl">${esc(x.k)}</span></div>`).join('')+`</div>`;
+}
+
+/* ====================== CORRETIVAS & PROPOSTAS ====================== */
+const CORR_STATUS_COR={'aprovad':'var(--ok)','aguard':'var(--warn)','recus':'var(--bad)','execu':'var(--maneng-azul)','conclu':'var(--leroy-dk)','propost':'var(--maneng)','orçament':'var(--mut)'};
+function statusCor(s){const t=(s||'').toLowerCase();for(const k in CORR_STATUS_COR)if(t.includes(k))return CORR_STATUS_COR[k];return 'var(--mut)';}
+let corrFilter={loja:'__all',status:'__all',mes:'__all'};
+function corrData(){ if(!DB.corretivas)DB.corretivas=[]; return DB.corretivas; }
+function corrMap(){
+  const d=corrData(); if(!d.length)return null;
+  const o=d[0];
+  return {
+    loja:findCol(o,['loja','unidade','filial','cliente']),
+    valor:findCol(o,['valor','orcado','orçado','total','preco','preço','vlr']),
+    status:findCol(o,['status','situac','etapa']),
+    data:findCol(o,['data','atendimento','emissao','emissão','vencimento']),
+    desc:findCol(o,['descric','descrição','observ','obs','detalhe']),
+    tipo:findCol(o,['tiposervico','tipodeservico','tiposervico','tipo','servico','serviço','categoria']),
+    equip:findCol(o,['equipamento','equip','maquina','máquina','ativo']),
+    prop:findCol(o,['proposta','numeroproposta','orcamento','orçamento','os','cotacao','cotação','quote','numero','número']),
+    resp:findCol(o,['responsavel','responsável','vendedor','consultor']),
+    uf:findCol(o,['uf','estado'])
+  };
+}
+function renderCorretivas(){
+  const list=corrData(), M=corrMap();
+  $('#corrSrc').textContent=list.length?`${list.length} registros carregados`:'nenhum arquivo carregado';
+  if(!list.length||!M){
+    $('#corrKpis').innerHTML='';$('#corrFilters').innerHTML='';$('#corrCharts').innerHTML='';
+    $('#corrTable').innerHTML='<div class="csv-empty"><b>Suba um CSV de corretivas / propostas</b>O painel gera os gráficos de valores, ranking de lojas e evolução por mês automaticamente.<div class="hintline">Clique em <b>↓ Baixar modelo CSV</b> para ver o formato esperado.</div></div>';
+    return;
+  }
+  const get=(r,k)=>k?r[k]||'':'';
+  const rows=list.filter(r=>
+    (corrFilter.loja==='__all'||get(r,M.loja)===corrFilter.loja)&&
+    (corrFilter.status==='__all'||get(r,M.status)===corrFilter.status)&&
+    (corrFilter.mes==='__all'||parseMes(get(r,M.data))===corrFilter.mes));
+  let tot=0,aprov=0,pend=0,recus=0;
+  rows.forEach(r=>{const v=parseValor(get(r,M.valor));tot+=v;const st=get(r,M.status).toLowerCase();
+    if(st.includes('aprov')||st.includes('conclu'))aprov+=v;
+    else if(st.includes('recus')||st.includes('reprov')||st.includes('não aprov')||st.includes('nao aprov'))recus+=v;
+    else pend+=v;});
+  $('#corrKpis').innerHTML=`
+    <div class="krow"><div class="lab"><i style="background:var(--leroy)"></i>Total orçado</div><div class="big">${BRL(tot)}</div><div class="sub">${rows.length} de ${list.length} itens</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--warn)"></i>Aguardando aprovação</div><div class="big">${BRL(pend)}</div><div class="sub">não aprovado / não recusado</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--ok)"></i>Aprovado</div><div class="big">${BRL(aprov)}</div><div class="sub">aprovado / concluído</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--bad)"></i>Recusado</div><div class="big">${BRL(recus)}</div><div class="sub">recusado / não aprovado</div></div>`;
+  const lojas=[...new Set(list.map(r=>get(r,M.loja)).filter(Boolean))].sort();
+  const stats=[...new Set(list.map(r=>get(r,M.status)).filter(Boolean))].sort();
+  const meses=[...new Set(list.map(r=>parseMes(get(r,M.data))).filter(Boolean))].sort();
+  $('#corrFilters').innerHTML=`
+    <div class="fgroup"><label>Loja</label><select id="cfLoja"><option value="__all">Todas (${lojas.length})</option>${lojas.map(l=>`<option ${corrFilter.loja===l?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+    ${stats.length?`<div class="fgroup"><label>Status</label><select id="cfStatus"><option value="__all">Todos</option>${stats.map(s=>`<option ${corrFilter.status===s?'selected':''}>${esc(s)}</option>`).join('')}</select></div>`:''}
+    ${meses.length?`<div class="fgroup"><label>Mês</label><select id="cfMes"><option value="__all">Todos</option>${meses.map(m=>`<option value="${m}" ${corrFilter.mes===m?'selected':''}>${m}</option>`).join('')}</select></div>`:''}
+    ${(corrFilter.loja!=='__all'||corrFilter.status!=='__all'||corrFilter.mes!=='__all')?`<span class="fchip" id="cfClear">✕ limpar filtros</span>`:''}`;
+  const bind=(id,k)=>{const el=$('#'+id);if(el)el.onchange=()=>{corrFilter[k]=el.value;renderCorretivas();};};
+  bind('cfLoja','loja');bind('cfStatus','status');bind('cfMes','mes');
+  if($('#cfClear'))$('#cfClear').onclick=()=>{corrFilter={loja:'__all',status:'__all',mes:'__all'};renderCorretivas();};
+  let charts='';
+  // Pareto por loja (valor) com top 10 clicável → modal de orçamentos
+  const porLoja={};const lojaRows={};
+  rows.forEach(r=>{const l=get(r,M.loja)||'—';porLoja[l]=(porLoja[l]||0)+parseValor(get(r,M.valor));(lojaRows[l]=lojaRows[l]||[]).push(r);});
+  const lojaAll=Object.entries(porLoja).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+  const lojaItems=lojaAll.slice(0,10);
+  const totLoja=lojaAll.reduce((a,x)=>a+x.v,0);
+  let acumL=0;const paretoRows=lojaItems.map(x=>{acumL+=x.v;return{...x,acum:Math.round(100*acumL/totLoja)};});
+  const maxL=lojaItems[0]?lojaItems[0].v:1;
+  charts+=`<div class="card wide"><h3>Pareto por loja <span class="pill">top 10 · clique para ver orçamentos</span></h3>
+    <div class="pareto" id="corrPareto">${paretoRows.map(x=>`
+      <div class="pareto-row" data-loja="${esc(x.k)}">
+        <span class="pname" title="${esc(x.k)}">${esc(x.k)}</span>
+        <span class="ptrack"><span class="pfill" style="width:${Math.round(100*x.v/maxL)}%"></span></span>
+        <span class="pval">${BRL(x.v)}</span>
+        <span class="pacum">${x.acum}%</span>
+      </div>`).join('')}</div></div>`;
+  window.__corrLojaRows=lojaRows;window.__corrMap=M;
+  if(M.status){
+    const porSt={};rows.forEach(r=>{const s=get(r,M.status)||'—';porSt[s]=(porSt[s]||0)+parseValor(get(r,M.valor));});
+    const stItems=Object.entries(porSt).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+    charts+=`<div class="card"><h3>Valor por status</h3>${hbar(stItems,x=>statusCor(x.k),BRL)}</div>`;
+  }
+  if(M.data){
+    const porMes={};rows.forEach(r=>{const m=parseMes(get(r,M.data));if(!m)return;porMes[m]=(porMes[m]||0)+parseValor(get(r,M.valor));});
+    const mesItems=Object.entries(porMes).map(([k,v])=>({k,v})).sort((a,b)=>a.k.localeCompare(b.k));
+    if(mesItems.length)charts+=`<div class="card wide"><h3>Evolução por mês <span class="pill">valor orçado</span></h3>${vbar(mesItems,null,v=>'R$'+Math.round(v/1000)+'k')}</div>`;
+  }
+  if(M.tipo){
+    const porTipo={};rows.forEach(r=>{const tp=get(r,M.tipo)||'—';porTipo[tp]=(porTipo[tp]||0)+parseValor(get(r,M.valor));});
+    const tpItems=Object.entries(porTipo).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v).slice(0,10);
+    if(tpItems.length)charts+=`<div class="card"><h3>Valor por tipo de serviço <span class="pill">top 10</span></h3>${hbar(tpItems,()=>'var(--maneng)',BRL)}</div>`;
+  }
+  if(M.equip){
+    const porEq={};rows.forEach(r=>{const eq=get(r,M.equip)||'—';porEq[eq]=(porEq[eq]||0)+parseValor(get(r,M.valor));});
+    const eqItems=Object.entries(porEq).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v).slice(0,10);
+    if(eqItems.length)charts+=`<div class="card"><h3>Valor por equipamento <span class="pill">top 10</span></h3>${hbar(eqItems,()=>'var(--maneng-azul)',BRL)}</div>`;
+  }
+  $('#corrCharts').innerHTML=charts;
+  $$('#corrPareto [data-loja]').forEach(el=>el.onclick=()=>abrirOrcamentosLoja(el.dataset.loja));
+  // colunas dinâmicas: inclui Tipo/Equip se existirem
+  const hasTipo=!!M.tipo, hasEq=!!M.equip;
+  const gt=`1fr ${hasTipo?'.9fr ':''}${hasEq?'.9fr ':''}1.2fr .7fr .8fr .9fr .7fr`;
+  $('#corrTable').innerHTML=`<div class="corr-row corr-head" style="grid-template-columns:${gt}"><div>Loja</div>${hasTipo?'<div>Tipo</div>':''}${hasEq?'<div>Equipamento</div>':''}<div>Descrição</div><div>Proposta</div><div>Valor</div><div>Status</div><div>Data</div></div>`+
+    rows.slice(0,200).map(r=>`<div class="corr-row" style="grid-template-columns:${gt}">
+      <div>${esc(get(r,M.loja))}</div>
+      ${hasTipo?`<div style="font-size:12px">${esc(get(r,M.tipo))}</div>`:''}
+      ${hasEq?`<div style="font-size:12px">${esc(get(r,M.equip))}</div>`:''}
+      <div>${esc(get(r,M.desc))}</div><div style="font-family:var(--mono);font-size:12px">${esc(get(r,M.prop))}</div>
+      <div style="font-family:var(--mono);font-size:12px">${BRL(parseValor(get(r,M.valor)))}</div>
+      <div><span class="stchip" style="background:${statusCor(get(r,M.status))}22;color:${statusCor(get(r,M.status))}">${esc(get(r,M.status)||'—')}</span></div>
+      <div style="font-family:var(--mono);font-size:11px;color:var(--mut)">${esc(get(r,M.data))}</div>
+    </div>`).join('')+(rows.length>200?`<div style="padding:12px 16px;color:var(--mut);font-size:12px">+ ${rows.length-200} linhas (refine os filtros para ver todas)</div>`:'');
+}
+/* converte o formato de exporta\u00e7\u00e3o do sistema (Assunto/Etapa/Total) em colunas limpas */
+function transformaCorretivas(objs){
+  if(!objs.length)return objs;
+  const k=Object.keys(objs[0]).map(x=>x.toLowerCase());
+  const ehExport=k.some(x=>x.includes('assunto'))&&k.some(x=>x.includes('etapa'));
+  if(!ehExport)return objs; // já está no formato simples
+  const colAssunto=Object.keys(objs[0]).find(x=>x.toLowerCase().includes('assunto'));
+  const colEtapa=Object.keys(objs[0]).find(x=>x.toLowerCase().includes('etapa'));
+  const colTotal=Object.keys(objs[0]).find(x=>x.toLowerCase().includes('total')||x.toLowerCase().includes('valor'));
+  const colResp=Object.keys(objs[0]).find(x=>x.toLowerCase().includes('respons'));
+  const colConc=Object.keys(objs[0]).find(x=>x.toLowerCase().includes('conclu'));
+  const colCriado=Object.keys(objs[0]).find(x=>x.toLowerCase().includes('criado'));
+  const STMAP={'ENVIADO AO CLIENTE':'Proposta enviada','ACEITO':'Aprovada','RECUSADO':'Recusada','NÃO APROVADAS':'Recusada','SOLICITAÇÃO MPLAN':'Em análise','REAVALIAÇÃO SUPERVISOR':'Em análise','APROVADO SUPERVISOR':'Aprovada','ELABORAÇÃO':'Orçamento'};
+  const fmtData=d=>{const m=/(\d{2})\/(\d{2})\/(\d{4})/.exec(d||'');return m?`${m[3]}-${m[2]}-${m[1]}`:'';};
+  const titm=s=>s.replace(/\w\S*/g,t=>t.charAt(0).toUpperCase()+t.slice(1).toLowerCase());
+  return objs.map(r=>{
+    const s=(r[colAssunto]||'').trim();
+    const mprop=/(C\d{4,6}-\d{2})\s*(R[VE]?[A-Z]?)?/.exec(s);
+    const prop=mprop?(mprop[1]+(mprop[2]?' '+mprop[2].trim():'')):'';
+    const mcod=/\b(L\d{4})\b/.exec(s); const cod=mcod?mcod[1]:'';
+    const muf=/[-\s]([A-Z]{2})\s*$/.exec(s); const uf=muf?muf[1]:'';
+    let loja='';
+    if(/LEROY MERLIN/i.test(s)){
+      let a=s.split(/LEROY MERLIN/i).pop().trim().replace(/^-+/,'').trim();
+      a=a.replace(/\bL\d{4}\b/,'').replace(/[-\s]+[A-Z]{2}\s*$/,'').replace(/\s*-\s*$/,'').trim().replace(/^-+|-+$/g,'').trim();
+      loja=titm(a);
+    }
+    const etapa=(r[colEtapa]||'').trim().toUpperCase();
+    return {
+      Loja:loja, UF:uf, Codigo:cod, Proposta:prop, Descricao:s,
+      Valor:r[colTotal]||'', Status:STMAP[etapa]||titm(etapa),
+      Responsavel:colResp?(r[colResp]||''):'',
+      Data:(colConc&&fmtData(r[colConc]))||(colCriado&&fmtData(r[colCriado]))||''
+    };
+  });
+}
+
+function setupCorrUpload(){
+  const inp=$('#corrCsv');
+  if(inp)inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+    rd.onload=()=>{DB.corretivas=transformaCorretivas(csvToObjects(rd.result));corrFilter={loja:'__all',status:'__all',mes:'__all'};
+      try{localStorage.setItem('leroy_corretivas',JSON.stringify(DB.corretivas));}catch(e){}
+      markGeneric('corretivas');renderCorretivas();toast('CSV de corretivas carregado ✓');};
+    rd.readAsText(f,'UTF-8');};
+  if($('#corrTemplate'))$('#corrTemplate').onclick=()=>downloadCSV('modelo_corretivas_leroy.csv',
+    'Loja;Tipo de Servico;Equipamento;Descricao;Proposta;Valor;Status;Data\nMorumbi;Corretiva;SPLITAO 5TR;Troca de compressor;C38013-26;12500,00;Aguardando aprovacao;2026-03-18\nTambore;Corretiva;ROOF TOP 10TR;Reparo vazamento serpentina;C38014-01;4800,50;Aprovada;2026-04-02\nBauru;Proposta;SPLIT HIWALL;Substituicao motoventilador;C38020-12;2300,00;Proposta enviada;2026-05-10');
+  if($('#corrAdd'))$('#corrAdd').onclick=()=>{
+    if(!DB.corretivas)DB.corretivas=[];
+    DB.corretivas.push({Loja:'',Descricao:'',Proposta:'',Valor:'',Status:'Orçamento',Data:''});
+    markGeneric('corretivas');renderCorretivas();
+  };
+}
+
+/* ====================== PREVENTIVA (CSV) ====================== */
+let prevFilter={loja:'__all',uf:'__all',mes:'__all'};
+function prevData(){ if(!DB.preventivas)DB.preventivas=[]; return DB.preventivas; }
+function prevMap(){
+  const d=prevData();if(!d.length)return null;const o=d[0];
+  return {
+    loja:findCol(o,['loja','unidade','filial']),
+    uf:findCol(o,['uf','estado']),
+    data:findCol(o,['data','atendimento','execuc','execuç','realizado']),
+    status:findCol(o,['status','situac','executad']),
+    tipo:findCol(o,['tipo','servico','serviço','escopo']),
+    spv:findCol(o,['supervisor','spv','responsavel','responsável'])
+  };
+}
+function renderPreventivas(){
+  const list=prevData(),M=prevMap();
+  $('#prevSrc').textContent=list.length?`${list.length} registros carregados`:'nenhum arquivo carregado';
+  if(!list.length||!M){
+    $('#prevKpis').innerHTML='';$('#prevFilters').innerHTML='';$('#prevCharts').innerHTML='';
+    $('#prevTable').innerHTML='<div class="csv-empty"><b>Suba o CSV de preventivas Leroy Merlin</b>O painel mostra execuções por mês, por loja e por estado, com datas de atendimento.<div class="hintline">Clique em <b>↓ Baixar modelo CSV</b> para ver o formato esperado.</div></div>';
+    return;
+  }
+  const get=(r,k)=>k?r[k]||'':'';
+  const rows=list.filter(r=>
+    (prevFilter.loja==='__all'||get(r,M.loja)===prevFilter.loja)&&
+    (prevFilter.uf==='__all'||get(r,M.uf)===prevFilter.uf)&&
+    (prevFilter.mes==='__all'||parseMes(get(r,M.data))===prevFilter.mes));
+  const feito=r=>{const s=get(r,M.status).toLowerCase();return s.includes('conclu')||s.includes('realiz')||s.includes('execut')||s.includes('ok')||s.includes('sim')||(!M.status&&!!get(r,M.data));};
+  const realizadas=rows.filter(feito).length;
+  const ufs=[...new Set(list.map(r=>get(r,M.uf)).filter(Boolean))];
+  $('#prevKpis').innerHTML=`
+    <div class="krow"><div class="lab"><i style="background:var(--leroy)"></i>Registros</div><div class="big">${rows.length}</div><div class="sub">de ${list.length} no total</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--ok)"></i>Atendimentos realizados</div><div class="big">${realizadas}</div><div class="sub">${rows.length?Math.round(100*realizadas/rows.length):0}% do filtro</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--maneng-azul)"></i>Estados</div><div class="big">${ufs.length||'—'}</div><div class="sub">cobertura Brasil</div></div>`;
+  const lojas=[...new Set(list.map(r=>get(r,M.loja)).filter(Boolean))].sort();
+  const meses=[...new Set(list.map(r=>parseMes(get(r,M.data))).filter(Boolean))].sort();
+  $('#prevFilters').innerHTML=`
+    <div class="fgroup"><label>Loja</label><select id="pfLoja"><option value="__all">Todas (${lojas.length})</option>${lojas.map(l=>`<option ${prevFilter.loja===l?'selected':''}>${esc(l)}</option>`).join('')}</select></div>
+    ${ufs.length?`<div class="fgroup"><label>UF</label><select id="pfUf"><option value="__all">Todos</option>${ufs.sort().map(u=>`<option ${prevFilter.uf===u?'selected':''}>${esc(u)}</option>`).join('')}</select></div>`:''}
+    ${meses.length?`<div class="fgroup"><label>Mês</label><select id="pfMes"><option value="__all">Todos</option>${meses.map(m=>`<option value="${m}" ${prevFilter.mes===m?'selected':''}>${m}</option>`).join('')}</select></div>`:''}
+    ${(prevFilter.loja!=='__all'||prevFilter.uf!=='__all'||prevFilter.mes!=='__all')?`<span class="fchip" id="pfClear">✕ limpar filtros</span>`:''}`;
+  const bind=(id,k)=>{const el=$('#'+id);if(el)el.onchange=()=>{prevFilter[k]=el.value;renderPreventivas();};};
+  bind('pfLoja','loja');bind('pfUf','uf');bind('pfMes','mes');
+  if($('#pfClear'))$('#pfClear').onclick=()=>{prevFilter={loja:'__all',uf:'__all',mes:'__all'};renderPreventivas();};
+  let charts='';
+  // paleta multicolor pensada pra projeção/slide
+  const PAL=['#5FA32E','#1F4FA3','#F47A20','#D8920E','#3FA7D6','#9B59B6','#E8533A','#16A085','#E84393','#7AC143','#34495E','#F1C40F'];
+  if(M.data){
+    const porMes={};rows.forEach(r=>{const m=parseMes(get(r,M.data));if(!m)return;porMes[m]=(porMes[m]||0)+1;});
+    const mItems=Object.entries(porMes).map(([k,v])=>({k,v})).sort((a,b)=>a.k.localeCompare(b.k));
+    if(mItems.length)charts+=`<div class="card wide"><h3>Atendimentos por mês <span class="pill">linha do tempo</span></h3>${vbar(mItems,(x)=>PAL[mItems.indexOf(x)%PAL.length],v=>v)}</div>`;
+  }
+  // status (donut colorido com legenda grande)
+  if(M.status){
+    const porSt={};rows.forEach(r=>{const s=get(r,M.status)||'—';porSt[s]=(porSt[s]||0)+1;});
+    const stItems=Object.entries(porSt).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+    const stCor={'Concluída':'#5FA32E','Em execução':'#1F4FA3','Em atraso':'#E8533A','Programado':'#D8920E','Reprovado':'#9B59B6'};
+    const totSt=stItems.reduce((a,x)=>a+x.v,0);
+    charts+=`<div class="card"><h3>Distribuição por status</h3><div class="donut-legend2">${stItems.map((x,i)=>`
+      <div class="li"><i style="background:${stCor[x.k]||PAL[i%PAL.length]}"></i>${esc(x.k)}<span class="lv">${x.v} · ${Math.round(100*x.v/totSt)}%</span></div>`).join('')}</div></div>`;
+  }
+  if(M.uf){
+    const porUf={};rows.forEach(r=>{const u=get(r,M.uf)||'—';porUf[u]=(porUf[u]||0)+1;});
+    const uItems=Object.entries(porUf).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+    charts+=`<div class="card"><h3>Por estado</h3>${hbar(uItems,(x)=>PAL[uItems.indexOf(x)%PAL.length],v=>v)}</div>`;
+  }
+  const porLoja={};rows.forEach(r=>{const l=get(r,M.loja)||'—';porLoja[l]=(porLoja[l]||0)+1;});
+  const lItems=Object.entries(porLoja).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v).slice(0,10);
+  charts+=`<div class="card"><h3>Atendimentos por loja <span class="pill">top 10</span></h3>${hbar(lItems,(x)=>PAL[lItems.indexOf(x)%PAL.length],v=>v)}</div>`;
+  $('#prevCharts').innerHTML=charts;
+  $('#prevTable').innerHTML=`<div class="corr-row corr-head" style="grid-template-columns:1fr .6fr 1fr .9fr .9fr 1fr"><div>Loja</div><div>UF</div><div>Tipo</div><div>Data atend.</div><div>Status</div><div>Supervisor</div></div>`+
+    rows.slice(0,200).map(r=>`<div class="corr-row" style="grid-template-columns:1fr .6fr 1fr .9fr .9fr 1fr">
+      <div>${esc(get(r,M.loja))}</div><div style="font-family:var(--mono);font-size:11px">${esc(get(r,M.uf))}</div>
+      <div style="font-size:12px">${esc(get(r,M.tipo))}</div>
+      <div style="font-family:var(--mono);font-size:11px">${esc(get(r,M.data))}</div>
+      <div><span class="stchip" style="background:${feito(r)?'var(--ok)':'var(--warn)'}22;color:${feito(r)?'var(--ok)':'var(--warn)'}">${esc(get(r,M.status)||(feito(r)?'Realizado':'Pendente'))}</span></div>
+      <div style="font-size:12px;color:var(--mut)">${esc(get(r,M.spv))}</div>
+    </div>`).join('')+(rows.length>200?`<div style="padding:12px 16px;color:var(--mut);font-size:12px">+ ${rows.length-200} linhas (refine os filtros)</div>`:'');
+}
+function setupPrevUpload(){
+  const inp=$('#prevCsv');
+  if(inp)inp.onchange=e=>{const f=e.target.files[0];if(!f)return;const rd=new FileReader();
+    rd.onload=()=>{DB.preventivas=csvToObjects(rd.result);prevFilter={loja:'__all',uf:'__all',mes:'__all'};
+      try{localStorage.setItem('leroy_preventivas',JSON.stringify(DB.preventivas));}catch(e){}
+      markGeneric('preventivas');renderPreventivas();toast('CSV de preventivas carregado ✓');};
+    rd.readAsText(f,'UTF-8');};
+  if($('#prevTemplate'))$('#prevTemplate').onclick=()=>downloadCSV('modelo_preventivas_leroy.csv',
+    'Loja;UF;Tipo;Data;Status;Supervisor\nMorumbi;SP;Preventiva trimestral;2026-03-12;Concluída;Ronie\nTambore;SP;Preventiva trimestral;2026-04-08;Concluída;Ronie\nBH Norte;MG;Preventiva trimestral;2026-05-15;Pendente;Edwilder');
+}
+
+/* generic pending marker for new tabs (saved via same savebar) */
+function markGeneric(kind){
+  pendingGeneric[kind]=true;
+  $('#savebar').classList.add('show');
+  $('#saveCount').textContent='•';
+  $('.savebar .msg').innerHTML='Alterações em <b>'+kind+'</b> pendentes';
+}
+
+/* ====================== SALÃO DE VENDAS ====================== */
+function isSalao(amb){const a=(amb||'').toUpperCase();return a.includes('SALÃO')||a.includes('SALAO');}
+function areaDe(amb,eq){
+  const a=(amb||'').toUpperCase(), c=(eq||'').toUpperCase();
+  if(/EXAUST|VENTILAD|VENTILA|CAIXA DE VENT|COIFA/.test(c)||a.includes('TELHADO')) return 'EXAUSTAO';
+  if(a.includes('SALÃO')||a.includes('SALAO')) return 'SALAO';
+  return 'ADM';
+}
+function renderAreas(){
+  const ag={SALAO:[0,0],ADM:[0,0],EXAUSTAO:[0,0]};
+  DB.stores.forEach(s=>s.equip.forEach(e=>{
+    const ar=areaDe(e.a,e.e);
+    e.c.forEach(c=>{ag[ar][0]++;if(c.k)ag[ar][1]++;});
+  }));
+  const T=ag.SALAO[0]+ag.ADM[0]+ag.EXAUSTAO[0], O=ag.SALAO[1]+ag.ADM[1]+ag.EXAUSTAO[1];
+  const pct=(o,t)=>t?Math.round(100*o/t):100;
+  const cfg=[
+    ['areaGeralG','areaGeralSub',pct(O,T),T-O,'Geral'],
+    ['areaSalaoG','areaSalaoSub',pct(ag.SALAO[1],ag.SALAO[0]),ag.SALAO[0]-ag.SALAO[1],'Salão'],
+    ['areaAdmG','areaAdmSub',pct(ag.ADM[1],ag.ADM[0]),ag.ADM[0]-ag.ADM[1],'ADM'],
+    ['areaExtG','areaExtSub',pct(ag.EXAUSTAO[1],ag.EXAUSTAO[0]),ag.EXAUSTAO[0]-ag.EXAUSTAO[1],'Exaustão']
+  ];
+  cfg.forEach(([gid,sid,p,par])=>{
+    const g=$('#'+gid); if(g)g.innerHTML=ringSVG(p,118,12,false)+`<div class="val"><b style="color:${pctColor(p)}">${p}<span style="font-size:.5em">%</span></b><small>operando</small></div>`;
+    const sub=$('#'+sid);
+    if(sub){const gap=100-p;sub.className='area-sub '+(gap>0?'gap':'goal');
+      sub.textContent=gap>0?`▼ ${gap}% · ${par} parados`:'✓ meta 100%';}
+  });
+}
+
+function ringText(pct,size,stroke){
+  return `${ringSVG(pct,size,stroke,false)}<div class="val"><b style="color:${pctColor(pct)}">${pct}<span style="font-size:.5em">%</span></b><small>operando</small></div>`;
+}
+function renderSalao(){
+  const stores=DB.stores;
+  let svT=0,svO=0,otT=0,otO=0,svEqDown=0;
+  stores.forEach(s=>s.equip.forEach(e=>{
+    const sal=isSalao(e.a);
+    e.c.forEach(c=>{ if(sal){svT++;if(c.k)svO++;} else {otT++;if(c.k)otO++;} });
+  }));
+  const svP=svT?Math.round(100*svO/svT):100, otP=otT?Math.round(100*otO/otT):100;
+  $('#salaoGauge').innerHTML=ringText(svP,128,13);
+  $('#outrasGauge').innerHTML=ringText(otP,128,13);
+  $('#salaoSub').textContent=svO+' / '+svT+' circuitos';
+  $('#outrasSub').textContent=otO+' / '+otT+' circuitos';
+  $('#salaoParados').textContent=(svT-svO).toLocaleString('pt-BR');
+  // meta 100% + diferença
+  const svGap=100-svP, otGap=100-otP;
+  const sm=$('#salaoMeta');
+  if(sm){ sm.className='sc-meta '+(svGap>0?'gap':'goal');
+    sm.textContent=svGap>0?`▼ ${svGap}% para a meta · ${svT-svO} circuitos`:'✓ meta 100% atingida'; }
+  const om=$('#outrasMeta');
+  if(om){ om.className='sc-meta '+(otGap>0?'gap':'goal');
+    om.textContent=otGap>0?`▼ ${otGap}% para a meta · ${otT-otO} circuitos`:'✓ meta 100% atingida'; }
+
+  // lojas com salão + rank
+  const rows=[];
+  stores.forEach(s=>{
+    let t=0,o=0;s.equip.forEach(e=>{if(isSalao(e.a))e.c.forEach(c=>{t++;if(c.k)o++;});});
+    if(t)rows.push({s,p:Math.round(100*o/t),par:t-o,t});
+  });
+  $('#salaoLojas').textContent=rows.length;
+  const gap=otP-svP;
+  $('#salaoGap').innerHTML=`O Salão de Vendas opera <b>${gap>0?gap+' pontos':'no mesmo nível'}</b> ${gap>0?'abaixo das demais áreas.':''} Levar o salão a 100% resolve <b>${(svT-svO)}</b> circuitos — o maior impacto direto na experiência do cliente.`;
+
+  const worst=[...rows].sort((a,b)=>a.p-b.p).slice(0,10);
+  $('#salaoWorst').innerHTML=worst.map((x,i)=>{
+    const col=pctColor(x.p);
+    return `<div class="rrow" data-salao="${esc(x.s.sheet)}">
+      <span class="pos">${String(i+1).padStart(2,'0')}</span>
+      <span class="nm"><b>${esc(x.s.title.replace(/^LEROY MERLIN /i,''))}</b><small>${x.par} parados no salão · ${esc(x.s.uf||'')}</small></span>
+      <span class="bar"><span class="track"><span class="fill" style="width:${x.p}%;background:${col}"></span></span><span class="pct" style="color:${col}">${x.p}%</span></span>
+    </div>`;
+  }).join('')||'<div style="color:var(--mut);font-size:13px">Sem dados de salão.</div>';
+  $$('#salaoWorst [data-salao]').forEach(el=>el.onclick=()=>abrirSalaoParados(el.dataset.salao));
+
+  // tipos no salão — gráfico total vs paradas
+  const tipo={};
+  stores.forEach(s=>s.equip.forEach(e=>{if(!isSalao(e.a))return;const t=eqTipo(e.e);(tipo[t]=tipo[t]||{tt:0,par:0});
+    const down=e.c.some(c=>!c.k); tipo[t].tt++; if(down)tipo[t].par++;}));
+  const tipoRows=Object.entries(tipo).filter(([,v])=>v.tt>0).map(([t,v])=>({t,tt:v.tt,par:v.par})).sort((a,b)=>b.par-a.par||b.tt-a.tt);
+  const maxTt=Math.max(1,...tipoRows.map(r=>r.tt));
+  $('#salaoTipoHint').textContent=tipoRows.length+' tipos';
+  $('#salaoTipo').innerHTML=`<div class="stipo-chart">${tipoRows.map(r=>`
+    <div class="stipo-row">
+      <span class="stipo-nm" title="${esc(r.t)}">${esc(r.t)}</span>
+      <span class="stipo-bars">
+        <span class="stipo-tot" style="width:${Math.round(100*r.tt/maxTt)}%"></span>
+        <span class="stipo-par" style="width:${Math.round(100*r.par/maxTt)}%">${r.par>0?`<b>${r.par}</b>`:''}</span>
+      </span>
+      <span class="stipo-val"><b>${r.par}</b> / ${r.tt} máq</span>
+    </div>`).join('')}</div>
+    <div class="stipo-leg"><span><i style="background:var(--leroy);opacity:.4"></i>Total instalado</span><span><i style="background:var(--bad)"></i>Máquinas paradas</span></div>`;
+
+  // causas no salão
+  const causa={};let tot=0;
+  stores.forEach(s=>s.equip.forEach(e=>{
+    if(!isSalao(e.a))return;
+    const down=e.c.length&&e.c.some(c=>!c.k);
+    const cz=classifyCausa(e.p);
+    if(cz&&(down||e.p)){causa[cz]=(causa[cz]||0)+1;tot++;}
+  }));
+  const cRows=Object.entries(causa).sort((a,b)=>b[1]-a[1]);
+  const cMax=Math.max(1,...cRows.map(r=>r[1]));
+  $('#salaoCausaHint').textContent=tot+' registros';
+  $('#salaoCausa').innerHTML=cRows.map(([nm,n])=>`
+    <div class="causarow"><div class="top">
+      <span class="nm"><i style="background:${CAUSA_COR[nm]||'var(--mut)'}"></i>${esc(nm)}</span>
+      <span class="ct">${n}</span></div>
+      <div class="track"><div class="fill" style="width:${Math.round(100*n/cMax)}%;background:${CAUSA_COR[nm]||'var(--mut)'}"></div></div>
+    </div>`).join('')||'<div style="color:var(--mut);font-size:13px">Sem pendências no salão.</div>';
+}
+
+/* ====================== ANALYTICS ====================== */
+function classifyCausa(p){
+  const t=(p||'').toLowerCase();
+  if(!t) return null;
+  if(t.includes('vazamento')) return 'Vazamento de fluído';
+  if(t.includes('compressor')) return 'Compressor avariado';
+  if(/(placa|contator|rel[ée]|fus[íi]vel|disjuntor|curto|falta de fase|capacitor|fia[çc][ãa]o|el[ée]tric|queima)/.test(t)) return 'Problemas elétricos';
+  if(t.includes('motoventilador')||t.includes('hélice')||t.includes('helice')||t.includes('polia')||t.includes('rolamento')) return 'Ventilação / motor';
+  if(t.includes('dreno')) return 'Dreno';
+  if(t.includes('desativ')||t.includes('desligad')) return 'Desativado';
+  return 'Outros';
+}
+const CAUSA_COR={'Vazamento de fluído':'#3FA7D6','Compressor avariado':'#E8533A','Problemas elétricos':'#F47A20','Ventilação / motor':'#E8B23A','Dreno':'#7A9384','Desativado':'#62816A','Outros':'#9BD466'};
+function eqTipo(name){
+  const n=(name||'').toUpperCase();
+  if(n.startsWith('EQUIPAMENTO ')||!n.trim()) return 'A CADASTRAR';
+  const ordem=['ROOFTOP','SPLITÃO','SPLIT TOP','FANCOIL','CHILLER','SPLIT K7','SPLIT HIWALL','SPLIT DUTADO','PISO TETO','CORTINA','EXAUSTOR','CAIXA DE VENT','BOMBA','ACJ','SPLIT'];
+  for(const t of ordem) if(n.includes(t)) return t==='CAIXA DE VENT'?'CAIXA VENT.':t;
+  return 'OUTROS';
+}
+function renderAnalytics(){
+  const stores=DB.stores;
+  // urgência: equip 100% parado vs parcial vs ok
+  let down=0,partial=0,okEq=0;
+  stores.forEach(s=>s.equip.forEach(e=>{
+    if(!e.c.length) return;
+    const o=e.c.filter(c=>c.k).length;
+    if(o===0) down++; else if(o<e.c.length) partial++; else okEq++;
+  }));
+  const totEq=down+partial+okEq;
+  $('#urgBlock').innerHTML=`
+    <div class="urg-top">
+      <div class="urg-cell crit"><b>${down}</b><small>parados<br>(urgência)</small></div>
+      <div class="urg-cell warn2"><b>${partial}</b><small>parciais<br>(risco)</small></div>
+      <div class="urg-cell good"><b>${okEq}</b><small>operando<br>100%</small></div>
+    </div>
+    <div class="urg-stack">
+      <span style="width:${100*down/totEq}%;background:var(--bad)"></span>
+      <span style="width:${100*partial/totEq}%;background:var(--warn)"></span>
+      <span style="width:${100*okEq/totEq}%;background:var(--leroy)"></span>
+    </div>
+    <div class="urg-leg">
+      <div><i style="background:var(--bad)"></i>Totalmente parado</div>
+      <div><i style="background:var(--warn)"></i>Parcial (1+ circuito)</div>
+      <div><i style="background:var(--leroy)"></i>Pleno</div>
+    </div>`;
+}
+
+function renderConcentra(){
+  const C=DB.concentracao;
+  if(!C){$('#concentraBox').innerHTML='';return;}
+  $('#concentraBox').innerHTML=`<div class="big">${C.pct}%</div>
+    <div class="txt">das paradas estão concentradas nas <b>5 lojas mais críticas</b>
+      <small>${esc(C.top5lojas.join(' · '))}</small></div>`;
+}
+function renderPareto(){
+  const P=DB.paretoLojas;
+  if(!P||!P.lojas.length){$('#paretoBox').innerHTML='<div style="color:var(--mut)">Sem itens parados.</div>';return;}
+  const lojas=P.lojas;
+  const max=lojas[0].parados;
+  const corte=P.lojas.find(l=>l.acumPct>=80);
+  $('#paretoBox').innerHTML=`<div class="pareto-head"><span>Loja</span><span></span><span class="c">Itens</span><span class="r">Acum.</span></div>`+
+    lojas.map(l=>`<div class="pareto-row" data-go="${esc(l.sheet)}">
+      <span class="pname" title="${esc(l.loja)}">${esc(l.loja)}</span>
+      <span class="ptrack"><span class="pfill" style="width:${Math.round(100*l.parados/max)}%"></span></span>
+      <span class="pval">${l.parados}</span>
+      <span class="pacum">${l.acumPct}%</span>
+    </div>`).join('')+
+    (corte?`<div class="pareto-80">📊 <b>Regra 80/20:</b> as primeiras lojas até <b>${esc(corte.loja)}</b> concentram 80% de todos os itens parados da rede — priorize-as.</div>`:'');
+  $$('#paretoBox [data-go]').forEach(el=>el.onclick=()=>openStore(el.dataset.go));
+}
+function renderSalaoTipo(){
+  const S=DB.salaoPorTipo;
+  const sel=$('#salaoTipoSel');
+  if(!S||!sel){return;}
+  const tipos=Object.keys(S.parados).sort((a,b)=>S.parados[b].length-S.parados[a].length);
+  if(!tipos.length){sel.innerHTML='<option>Nenhuma máquina parada no salão ✓</option>';$('#salaoTipoList').innerHTML='';return;}
+  const cur=sel.value||tipos[0];
+  sel.innerHTML=tipos.map(t=>`<option value="${esc(t)}" ${t===cur?'selected':''}>${esc(t)} — ${S.parados[t].length} parada(s) de ${S.totais[t]||'?'}</option>`).join('');
+  const drawList=(tipo)=>{
+    const arr=S.parados[tipo]||[];
+    $('#salaoTipoResumo').innerHTML=`<b>${arr.length}</b> ${esc(tipo)} parada(s) — de ${S.totais[tipo]||'?'} no total`;
+    $('#salaoTipoList').innerHTML=arr.length?arr.sort((a,b)=>a.loja.localeCompare(b.loja)).map(m=>`
+      <div class="stp-item" data-go="${esc(m.sheet)}">
+        <div class="l"><b>${esc(m.loja)}</b><small>${esc(m.eq)}${m.pend?' · '+esc(m.pend):''}</small></div>
+        <div class="r">${m.circ} circ. parado(s)</div>
+      </div>`).join('') : '<div class="stp-empty">Nenhuma máquina parada deste tipo.</div>';
+    $$('#salaoTipoList [data-go]').forEach(el=>el.onclick=()=>openStore(el.dataset.go));
+  };
+  drawList(cur);
+  sel.onchange=()=>drawList(sel.value);
+}
+function bindHome(){
+  $$('[data-go]').forEach(el=>el.onclick=()=>openStore(el.dataset.go));
+  const sel=$('#lojaSelect');
+  if(sel) sel.onchange=()=>{ if(sel.value){ openStore(sel.value); } };
+}
+
+/* ====================== STORE DETAIL ====================== */
+function openStore(sheet,keepPending){
+  const s=storeIndex[sheet]; if(!s)return;
+  if(!keepPending){pending={};currentStore=sheet;updateSaveBar();}
+  showView('store');
+  const c=storeCounts(s),p=c.t?Math.round(100*c.o/c.t):100;
+  const ambientes=[...new Set(s.equip.map(e=>e.a||'—'))];
+  const v=$('#view-store');
+  v.innerHTML=`
+    <button class="tab" style="margin-bottom:16px;padding-left:0;color:var(--leroy)" onclick="showView('home')">← Voltar à visão geral</button>
+    <div class="detail-head">
+      <div class="dh-main">
+        <h1>${esc(s.title.replace(/^LEROY MERLIN /i,''))}</h1>
+        <div class="dh-tags">
+          <span class="t">LOJA <b>${esc(s.loja||'—')}</b></span>
+          <span class="t">UF <b>${esc(s.uf||'—')}</b></span>
+          <span class="t">SUPERVISOR <b>${esc(s.spv||'—')}</b></span>
+          <span class="t">EQUIP. <b>${s.equip.length}</b></span>
+          <span class="t">CIRCUITOS <b>${c.t}</b></span>
+        </div>
+      </div>
+      <div class="dh-gauge">
+        <div class="dg-num"><b id="stPct" style="color:${pctColor(p)}">${p}%</b><br><small>operação</small></div>
+        <div class="dg-bar"><div class="dg-fill" id="stFill" style="width:${p}%;background:${pctColor(p)}"></div></div>
+      </div>
+    </div>
+    <div class="eq-toolbar" id="ambBar">
+      <span class="amb-chip on" data-amb="__all">Todos os ambientes</span>
+      ${ambientes.map(a=>`<span class="amb-chip" data-amb="${esc(a)}">${esc(a)}</span>`).join('')}
+    </div>
+    <div class="eqtable" id="eqtable"></div>
+  `;
+  renderEq(s,'__all');
+  $$('#ambBar .amb-chip').forEach(ch=>ch.onclick=()=>{
+    $$('#ambBar .amb-chip').forEach(x=>x.classList.remove('on'));ch.classList.add('on');
+    renderEq(s,ch.dataset.amb);
+  });
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function renderEq(s,filterAmb){
+  const groups={};
+  s.equip.forEach((e,idx)=>{const a=e.a||'—';if(filterAmb!=='__all'&&a!==filterAmb)return;(groups[a]=groups[a]||[]).push({e,idx});});
+  let html='';
+  for(const [amb,items] of Object.entries(groups)){
+    let go=0,gt=0;items.forEach(({e})=>e.c.forEach(c=>{gt++;if(c.k)go++;}));
+    html+=`<div class="eqgroup-h">${esc(amb)}<span class="cnt">${items.length} equip · ${gt?Math.round(100*go/gt):100}%</span></div>`;
+    html+=`<div class="eqrow eqhead-row">
+      <div>Equipamento</div>
+      <div>Modelo Evaporador</div>
+      <div>Modelo Condensador</div>
+      <div>Fabricação</div>
+      <div>Circuitos (A · B · C)</div>
+      <div style="text-align:right">Progresso</div>
+    </div>`;
+    items.forEach(({e,idx})=>{
+      const eo=e.c.filter(c=>c.k).length,et=e.c.length,ep=et?Math.round(100*eo/et):100;
+      const dead=et>0&&eo===0;
+      html+=`<div class="eqrow ${dead?'dead':''} ${e.cad?'tocad':''}" data-eq="${idx}">
+        <div class="eq-eq">
+          <div class="eqcol-lbl">Equipamento</div>${e.cad
+            ? `<input class="eqfield namefield" data-f="e" data-eq="${idx}" value="" placeholder="A cadastrar — digite o equipamento"><span class="cadbadge">a cadastrar</span>`
+            : esc(e.e)}
+          ${e.p?`<div class="obs">⚠ ${esc(e.p)}</div>`:''}
+        </div>
+        <div><div class="eqcol-lbl">Modelo Evap.</div><input class="eqfield" data-f="ev" data-eq="${idx}" value="${esc(e.ev)}" placeholder="—"></div>
+        <div><div class="eqcol-lbl">Modelo Cond.</div><input class="eqfield" data-f="co" data-eq="${idx}" value="${esc(e.co)}" placeholder="—"></div>
+        <div><div class="eqcol-lbl">Fabric.</div><input class="eqfield" data-f="f" data-eq="${idx}" value="${esc(e.f)}" placeholder="—"></div>
+        <div class="circs">${e.c.map((c,ci)=>`<button class="circ ${c.k?'ok':''}" data-eq="${idx}" data-ci="${ci}" title="Circuito ${esc(c.l)}">${esc(c.l)}</button>`).join('')||'<span style="color:var(--mut2);font-size:11px">sem circuito</span>'}</div>
+        <div class="eq-state">
+          <span class="eq-pct" style="color:${pctColor(ep)}">${ep}%</span>
+          ${et>0?`<button class="allok" data-allok="${idx}">Tudo OK</button>`:''}
+        </div>
+      </div>`;
+    });
+  }
+  $('#eqtable').innerHTML=html||'<div class="empty">Nenhum equipamento neste filtro.</div>';
+  bindEq(s);
+}
+
+function bindEq(s){
+  $$('#eqtable .circ').forEach(b=>b.onclick=()=>{
+    const eq=+b.dataset.eq,ci=+b.dataset.ci,e=s.equip[eq];
+    e.c[ci].k=e.c[ci].k?0:1;
+    markPending(s,eq,'circ');
+    refreshStoreLive(s);
+  });
+  $$('#eqtable [data-allok]').forEach(b=>b.onclick=()=>{
+    const eq=+b.dataset.allok,e=s.equip[eq];
+    const target=e.c.every(c=>c.k)?0:1; // toggle: if all ok -> all off, else all on
+    e.c.forEach(c=>c.k=target);
+    markPending(s,eq,'circ');
+    refreshStoreLive(s);
+  });
+  $$('#eqtable .eqfield').forEach(inp=>inp.onchange=()=>{
+    const eq=+inp.dataset.eq,f=inp.dataset.f,e=s.equip[eq];
+    e[f]=inp.value;
+    if(f==='e'&&inp.value.trim()){ e.cad=0; refreshStoreLive(s); render(); showViewSilent('store'); }
+    markPending(s,eq,f);
+  });
+}
+function refreshStoreLive(s){
+  // re-render current ambient filter + header + home aggregates
+  const onChip=$('#ambBar .amb-chip.on');
+  renderEq(s,onChip?onChip.dataset.amb:'__all');
+  const c=storeCounts(s),p=c.t?Math.round(100*c.o/c.t):100;
+  $('#stPct').textContent=p+'%';$('#stPct').style.color=pctColor(p);
+  $('#stFill').style.width=p+'%';$('#stFill').style.background=pctColor(p);
+  render(); // home reacts (KPIs, rankings, UF) — but keep us on store view
+  showViewSilent('store');
+}
+
+/* ====================== PENDING / SAVE ====================== */
+function markPending(s,eqIdx,field){
+  const e=s.equip[eqIdx];
+  const key=s.sheet+'::'+eqIdx;
+  pending[key]={sheet:s.sheet,eq:eqIdx,equip:e.e,e:e.e,amb:e.a,ev:e.ev,co:e.co,f:e.f,circ:e.c.map(c=>c.k)};
+  updateSaveBar();
+}
+function updateSaveBar(){
+  const n=Object.keys(pending).length;
+  $('#saveCount').textContent=n;
+  $('#savebar').classList.toggle('show',n>0);
+}
+$('#undoBtn').onclick=()=>{ if(SCRIPT_URL){pullLive();}else{boot();} pending={};pendingGeneric={};updateSaveBar();toast('Alterações descartadas');};
+$('#saveBtn').onclick=async()=>{
+  const edits=Object.values(pending);
+  const hasGeneric=Object.keys(pendingGeneric).length>0;
+  if(!edits.length && !hasGeneric)return;
+  // sempre guarda um backup local (vale mesmo sem Apps Script configurado)
+  try{ localStorage.setItem('leroy_corretivas',JSON.stringify(DB.corretivas||[]));
+       localStorage.setItem('leroy_preventivas',JSON.stringify(DB.preventivas||[])); }catch(e){}
+  if(!SCRIPT_URL){
+    pending={};pendingGeneric={};updateSaveBar();
+    toast('Salvo localmente. Configure o Apps Script para sincronizar com a planilha.');
+    return;
+  }
+  $('#saveBtn').disabled=true;setSync('saving');
+  try{
+    const body={action:'write',edits};
+    if(hasGeneric){ body.corretivas=DB.corretivas||[]; body.preventivas=DB.preventivas||[]; }
+    await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
+      body:JSON.stringify(body)});
+    pending={};pendingGeneric={};updateSaveBar();toast('Salvo na planilha ✓');
+    setTimeout(pullLive,1200);
+  }catch(e){toast('Falha ao salvar — tente novamente',true);setSync('err');}
+  $('#saveBtn').disabled=false;
+};
+
+/* ====================== VIEW SWITCH ====================== */
+function abrirOrcamentosLoja(loja){
+  const rows=(window.__corrLojaRows||{})[loja]||[];
+  const M=window.__corrMap||{};
+  const get=(r,k)=>k?r[k]||'':'';
+  const sorted=[...rows].sort((a,b)=>parseValor(get(b,M.valor))-parseValor(get(a,M.valor)));
+  const tot=sorted.reduce((a,r)=>a+parseValor(get(r,M.valor)),0);
+  let body=`<div class="modal-sub">${sorted.length} orçamento(s) · total ${BRL(tot)}</div><div class="modal-maq">`;
+  body+=sorted.map(r=>{
+    const st=get(r,M.status);
+    return `<div class="mm-row" style="grid-template-columns:1fr auto;border-left-color:${statusCor(st)}">
+      <div class="mm-eq">${esc(get(r,M.prop)||get(r,M.desc)||'—')}
+        <small>${esc(get(r,M.desc)||'')}${M.tipo&&get(r,M.tipo)?' · '+esc(get(r,M.tipo)):''}${M.equip&&get(r,M.equip)?' · '+esc(get(r,M.equip)):''}</small>
+        <small style="color:${statusCor(st)};font-weight:600">${esc(st||'')}${M.data&&get(r,M.data)?' · '+esc(get(r,M.data)):''}</small>
+      </div>
+      <div class="mm-idade" style="color:var(--txt)">${BRL(parseValor(get(r,M.valor)))}</div>
+    </div>`;
+  }).join('')+`</div>`;
+  openModal(`${loja} — orçamentos`,body);
+}
+
+function openModal(title,html){
+  $('#modalTitle').textContent=title;
+  $('#modalBody').innerHTML=html;
+  $('#modalBg').classList.add('show');
+}
+function closeModal(e){
+  if(e&&e.target&&e.target.id!=='modalBg'&&e.target.className!=='modal-x'&&!(e.currentTarget&&e.currentTarget.id==='modalBg')) {}
+  $('#modalBg').classList.remove('show');
+}
+function abrirSalaoParados(sheet){
+  const s=DB.stores.find(x=>x.sheet===sheet); if(!s)return;
+  const nome=s.title.replace(/^LEROY MERLIN /i,'');
+  // só equipamentos do salão que têm circuito parado
+  const parados=s.equip.filter(e=>isSalao(e.a)&&e.c.some(c=>!c.k));
+  let t=0,o=0;s.equip.forEach(e=>{if(isSalao(e.a))e.c.forEach(c=>{t++;if(c.k)o++;});});
+  const pct=t?Math.round(100*o/t):100;
+  let body=`<div class="modal-sub">Salão de Vendas · ${pct}% operando · ${parados.length} equipamento(s) com circuito parado</div>`;
+  if(parados.length){
+    body+=`<div class="modal-maq">`+parados.map(e=>{
+      const down=e.c.filter(c=>!c.k).map(c=>c.l).join(', ');
+      return `<div class="mm-row"><div class="mm-eq">${esc(e.e)}<small>${esc(e.a)}${e.p?' · '+esc(e.p):''}</small></div><div class="mm-idade">circ. ${esc(down)}</div></div>`;
+    }).join('')+`</div>`;
+    body+=`<div style="margin-top:14px;font-size:11.5px;color:var(--mut)">Demais áreas (ADM, exaustão) têm prioridade menor e não constam aqui.</div>`;
+  } else body+='<div style="color:var(--mut);padding:10px 0">Nenhum equipamento parado no salão. ✓</div>';
+  openModal(`${nome} — parados no Salão`,body);
+}
+function abrirMaquinasLoja(sheet){
+  const O=DB.obsolescencia; if(!O)return;
+  const o=O.lojas.find(x=>x.sheet===sheet); if(!o)return;
+  const maqs=(o.maquinas||[]);
+  const trocar=maqs.filter(m=>m.trocar).sort((a,b)=>(a.ano||9999)-(b.ano||9999));
+  const ok=maqs.filter(m=>!m.trocar&&m.ano).sort((a,b)=>(a.ano||9999)-(b.ano||9999));
+  const nome=o.title.replace(/^LEROY MERLIN /i,'');
+  const limite=o.limiteTroca||(o.litoral?5:10);
+  let body=`<div class="modal-sub">${trocar.length} máquina(s) para troca por obsolescência (+${limite} anos) · Salão de Vendas${o.litoral?' · 🌊 LITORAL (corrosão acelerada — troca a cada 5 anos)':''}</div>`;
+  body+=`<div class="modal-maq">`;
+  body+=trocar.map(m=>`<div class="mm-row">
+    <div class="mm-eq">${esc(m.eq)}${m.evap?`<small>${esc(m.evap)}</small>`:''}</div>
+    <div class="mm-ano">${m.ano||'—'}</div>
+    <div class="mm-idade">${m.idade?m.idade+' anos':'s/ ano'}</div>
+  </div>`).join('');
+  if(ok.length){
+    body+=`<div style="font-size:11px;color:var(--mut);text-transform:uppercase;letter-spacing:.5px;margin:14px 0 4px">Demais máquinas (dentro do prazo)</div>`;
+    body+=ok.map(m=>`<div class="mm-row ok">
+      <div class="mm-eq">${esc(m.eq)}</div>
+      <div class="mm-ano">${m.ano||'—'}</div>
+      <div class="mm-idade">${m.idade!=null?m.idade+' anos':'—'}</div>
+    </div>`).join('');
+  }
+  body+=`</div>`;
+  openModal(`${nome} — máquinas do Salão`,body);
+}
+
+// monta o conteúdo expansível de uma loja (máquinas a trocar + parados)
+function critExpandHtml(maqTrocar,paradosLista){
+  let h='';
+  const trocar=(maqTrocar||[]).slice().sort((a,b)=>(a.ano||9999)-(b.ano||9999));
+  if(trocar.length){
+    h+=`<div class="cc-sechd trocar">${trocar.length} máquina(s) a trocar — Salão de Vendas</div><div class="modal-maq">`;
+    h+=trocar.map(m=>`<div class="mm-row"><div class="mm-eq">${esc(m.eq)}${m.evap?`<small>${esc(m.evap)}</small>`:''}</div><div class="mm-ano">${m.ano||'—'}</div><div class="mm-idade">${m.idade?m.idade+' anos':'s/ ano'}</div></div>`).join('')+`</div>`;
+  }
+  const par=paradosLista||[];
+  if(par.length){
+    h+=`<div class="cc-sechd parado">${par.length} equipamento(s) parado(s) — risco imediato</div><div class="modal-maq">`;
+    h+=par.map(p=>`<div class="mm-row"><div class="mm-eq">${esc(p.eq)}<small>${esc(p.amb)}${p.pend?' · '+esc(p.pend):''}</small></div><div class="mm-idade">${p.circ} circ.</div></div>`).join('')+`</div>`;
+  }
+  if(!trocar.length&&!par.length) h='<div style="color:var(--mut);font-size:12.5px">Sem máquinas a trocar ou paradas no salão no momento.</div>';
+  return h;
+}
+function toggleCrit(el){
+  const open=el.classList.contains('open');
+  // fecha os outros da mesma grade
+  const grid=el.parentElement;
+  grid.querySelectorAll('.crit-card.open').forEach(c=>{if(c!==el)c.classList.remove('open');});
+  el.classList.toggle('open',!open);
+}
+function bindSecToggles(){
+  $$('.sec-toggle').forEach(h=>{
+    h.onclick=()=>{
+      const id=h.dataset.toggle;
+      const box=$('#'+id);const ind=$('#ind-'+id);
+      const open=box.classList.toggle('open');
+      if(ind)ind.textContent=open?'▾ ocultar':'▸ Clique para ver';
+    };
+  });
+}
+function renderCriticidade(){
+  const C=DB.criticidade;
+  if(!C||!C.lojas){$('#critCards').innerHTML='';return;}
+  $('#critCards').innerHTML=C.lojas.map(c=>`
+    <div class="crit-card ${c.rank<=3?'top3':''} ${c.litoral?'lit':''}" data-crit="${esc(c.sheet)}">
+      <div class="cc-rank">${c.rank}</div>
+      <div class="cc-nm">${esc(c.nome)}</div>
+      <div class="cc-uf">${c.uf||''}${c.litoral?' · 🌊 litoral':''} · ${esc(c.spv||'s/ spv')}</div>
+      <div class="cc-stats">
+        <div class="cc-stat cc-oper"><b>${c.pct}%</b><small>operando</small></div>
+        <div class="cc-stat cc-parado"><b>${c.parados}</b><small>parados</small></div>
+        <div class="cc-stat cc-trocar"><b>${c.trocar}</b><small>p/ trocar</small></div>
+      </div>
+      <span class="cc-hint">▾ clique</span>
+      <div class="cc-expand">${critExpandHtml(c.maqTrocar,c.paradosLista)}</div>
+    </div>`).join('');
+  $$('#critCards [data-crit]').forEach(el=>el.onclick=()=>toggleCrit(el));
+}
+
+function renderObsolescencia(){
+  renderCriticidade();
+  bindSecToggles();
+  const O=DB.obsolescencia;
+  if(!O||!O.lojas){$('#obsRank').innerHTML='<div class="csv-empty">Dados de obsolescência não disponíveis neste snapshot.</div>';return;}
+  const lojas=O.lojas, ano=O.anoRef||2026;
+  const totMaq=lojas.reduce((a,o)=>a+o.maqSalao,0);
+  const totTrocar=lojas.reduce((a,o)=>a+o.trocar,0);
+  const nCrit=lojas.filter(o=>o.trocar>0).length;
+  const nLitoral=lojas.filter(o=>o.litoral).length;
+  const nMistas=lojas.filter(o=>o.mista).length;
+  $('#obsKpis').innerHTML=`
+    <div class="krow"><div class="lab"><i style="background:var(--bad)"></i>Máquinas p/ trocar</div><div class="big">${totTrocar}</div><div class="sub">litoral +5a · demais +10a · de ${totMaq}</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--maneng)"></i>Lojas críticas</div><div class="big">${nCrit}</div><div class="sub">com ao menos 1 troca</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--maneng-azul)"></i>Litoral</div><div class="big">${nLitoral}</div><div class="sub">corrosão · troca a cada 5 anos</div></div>
+    <div class="krow"><div class="lab"><i style="background:var(--warn)"></i>Parque misto</div><div class="big">${nMistas}</div><div class="sub">anos diferentes</div></div>`;
+  // cards tempo de vida (expansíveis, só lojas com troca, ordem do ranking)
+  const cards=lojas.filter(o=>o.trocar>0);
+  $('#obsCards').innerHTML=cards.map((o,i)=>{
+    const maqTrocar=(o.maquinas||[]).filter(m=>m.trocar);
+    return `<div class="crit-card ${i<3?'top3':''} ${o.litoral?'lit':''}" data-obscard="${esc(o.sheet)}">
+      <div class="cc-rank">${i+1}</div>
+      <div class="cc-nm">${esc(o.title.replace(/^LEROY MERLIN /i,''))}</div>
+      <div class="cc-uf">${o.uf||''}${o.litoral?' · 🌊 litoral (+5a)':' · +10a'}${o.mista?' · misto':''}</div>
+      <div class="cc-stats">
+        <div class="cc-stat cc-trocar"><b>${o.trocar}</b><small>p/ trocar</small></div>
+        <div class="cc-stat"><b style="color:var(--mut)">${o.min?o.min:'—'}</b><small>mais antiga</small></div>
+        <div class="cc-stat"><b style="color:var(--leroy-dk)">${o.maqSalao}</b><small>no salão</small></div>
+      </div>
+      <span class="cc-hint">▾ clique</span>
+      <div class="cc-expand"><div class="cc-sechd trocar">${maqTrocar.length} máquina(s) a trocar (+${o.limiteTroca||10} anos)</div><div class="modal-maq">${maqTrocar.sort((a,b)=>(a.ano||9999)-(b.ano||9999)).map(m=>`<div class="mm-row"><div class="mm-eq">${esc(m.eq)}${m.evap?`<small>${esc(m.evap)}</small>`:''}</div><div class="mm-ano">${m.ano||'—'}</div><div class="mm-idade">${m.idade?m.idade+' anos':'s/ ano'}</div></div>`).join('')}</div></div>
+    </div>`;}).join('');
+  $$('#obsCards [data-obscard]').forEach(el=>el.onclick=()=>toggleCrit(el));
+  // ranking
+  const rankList=lojas.filter(o=>o.trocar>0);
+  const maxTr=Math.max(1,...rankList.map(o=>o.trocar));
+  $('#obsRank').innerHTML=rankList.map((o,i)=>`
+    <div class="obs-row ${i<3?'top3':''}" data-loja="${esc(o.sheet)}">
+      <div class="pos">${i+1}</div>
+      <div class="nm">${esc(o.title.replace(/^LEROY MERLIN /i,''))} <small>${o.uf||''}</small>
+        ${o.litoral?'<span class="tag-litoral">🌊 LITORAL</span>':''}
+        ${o.mista?'<span class="tag-mista">MISTA</span>':''}</div>
+      <div class="obs-barwrap"><div class="obs-bar"><i style="width:${Math.round(100*o.trocar/maxTr)}%"></i></div></div>
+      <div class="tr"><b>${o.trocar}</b><span>p/ trocar</span></div>
+      <div class="yr">${o.min?o.min+(o.max!==o.min?'–'+o.max:''):'s/ ano'}</div>
+    </div>`).join('');
+  $$('#obsRank [data-loja]').forEach(el=>el.onclick=()=>abrirMaquinasLoja(el.dataset.loja));
+  // gráficos
+  const faixas={'+15 anos':0,'10–15 anos':0,'5–10 anos':0,'< 5 anos':0};
+  lojas.forEach(o=>{(o.maquinas||[]).forEach(m=>{if(!m.ano)return;const idade=ano-m.ano;if(idade>15)faixas['+15 anos']++;else if(idade>=10)faixas['10–15 anos']++;else if(idade>=5)faixas['5–10 anos']++;else faixas['< 5 anos']++;});});
+  const faixaItems=Object.entries(faixas).map(([k,v])=>({k,v}));
+  const faixaCor={'+15 anos':'var(--bad)','10–15 anos':'var(--maneng)','5–10 anos':'var(--warn)','< 5 anos':'var(--ok)'};
+  let charts=`<div class="card"><h3>Parque por faixa de idade <span class="pill">anos cadastrados</span></h3>${hbar(faixaItems,x=>faixaCor[x.k],v=>v+' máq')}</div>`;
+  const porUf={};
+  lojas.forEach(o=>{if(o.trocar>0){const u=o.uf||'—';porUf[u]=(porUf[u]||0)+o.trocar;}});
+  const ufItems=Object.entries(porUf).map(([k,v])=>({k,v})).sort((a,b)=>b.v-a.v);
+  charts+=`<div class="card"><h3>Máquinas a trocar por estado</h3>${hbar(ufItems,()=>'var(--maneng-azul)',v=>v)}</div>`;
+  $('#obsCharts').innerHTML=charts;
+  // Lojas e Anos dos equipamentos — TODAS as lojas
+  const todasOrdenadas=[...lojas].sort((a,b)=>(a.min||9999)-(b.min||9999)||a.title.localeCompare(b.title));
+  $('#obsMistas').innerHTML='<div style="display:flex;flex-wrap:wrap;margin-top:12px">'+todasOrdenadas.map(o=>`
+    <div class="obs-chip ${o.mista?'':''}" style="${o.mista?'border-color:var(--warn)':''}">${esc(o.title.replace(/^LEROY MERLIN /i,''))} <span class="yrs">${o.anos.length?o.anos.join(' · '):'s/ ano'}</span>${o.mista?' <span class="tag-mista">misto</span>':''}</div>`).join('')+'</div>';
+  const semano=lojas.filter(o=>o.semAno>0).sort((a,b)=>b.semAno-a.semAno);
+  $('#obsSemAno').innerHTML=semano.length?'<div style="display:flex;flex-wrap:wrap;margin-top:12px">'+semano.map(o=>`
+    <div class="obs-chip">${esc(o.title.replace(/^LEROY MERLIN /i,''))} <b style="color:var(--mut2)">${o.semAno} s/ ano</b></div>`).join('')+'</div>':'<div style="color:var(--mut);padding:10px 0">Todas as máquinas do salão têm ano cadastrado. ✓</div>';
+}
+
+function showView(v){
+  $$('.view').forEach(x=>x.classList.remove('on'));
+  const el=$('#view-'+v); if(el)el.classList.add('on');
+  $$('.nav .tab').forEach(t=>t.classList.toggle('on', t.dataset.view===v));
+  if(v==='home'){currentStore=null;}
+  if(v==='plano')renderPlano();
+  if(v==='corretivas')renderCorretivas();
+  if(v==='preventivas')renderPreventivas();
+  if(v==='obsolescencia')renderObsolescencia();
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function showViewSilent(v){ // re-render home internals without flipping view
+  $$('.view').forEach(x=>x.classList.remove('on'));
+  $('#view-'+v).classList.add('on');
+}
+$$('.nav .tab[data-view]').forEach(t=>t.onclick=()=>showView(t.dataset.view));
+
+/* ====================== SEARCH ====================== */
+$('#search').oninput=e=>{
+  const q=e.target.value.trim().toLowerCase();
+  if(!q){render();showView('home');return;}
+  showView('home');
+  const matches=DB.stores.filter(s=>(s.title+' '+s.loja+' '+s.uf+' '+s.spv).toLowerCase().includes(q))
+    .map(s=>({s,p:storePct(s)}));
+  $('#storeList').innerHTML=matches.length?matches.map(storeCard).join(''):'<div class="empty"><b>Nada encontrado</b>Tente outro nome, código ou estado.</div>';
+  bindHome();
+  $('#storeList').scrollIntoView({behavior:'smooth',block:'start'});
+};
+
+/* ====================== TOAST ====================== */
+let toastT;
+function toast(msg,err){
+  const t=$('#toast');t.textContent=msg;t.className='toast show'+(err?' err':'');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.className='toast',3000);
+}
+
+setupCorrUpload();
+setupPrevUpload();
+boot();
+</script>
+</body>
+</html>
