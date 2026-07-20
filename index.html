@@ -928,8 +928,9 @@ function setSync(mode){
 }
 
 /* live read via JSONP (contorna CORS, igual Cronograma-Zamp) */
-function pullLive(){
+function pullLive(retry){
   const cb='__leroy_'+Date.now();
+  const fail=()=>{ delete window[cb]; if(sc&&sc.remove)sc.remove(); if(!retry){ setTimeout(()=>pullLive(true),3500); } else { setSync('err'); } };
   window[cb]=(resp)=>{
     try{
       if(resp&&resp.stores){
@@ -940,15 +941,16 @@ function pullLive(){
         if(!resp.criticidade||!resp.criticidade.lojas||!resp.criticidade.lojas.length) resp.criticidade=snap.criticidade||resp.criticidade;
         const _meta={}; (snap.stores||[]).forEach(s=>_meta[s.sheet]=s);
         (resp.stores||[]).forEach(s=>{const o=_meta[s.sheet]; if(o){ if(!s.loja)s.loja=o.loja; if(!s.uf)s.uf=o.uf; if(!s.spv)s.spv=o.spv; }});
-        DB=resp; indexDB(); render(); if(currentStore)openStore(currentStore,true); setSync('live'); }
-    }catch(e){setSync('err');}
-    delete window[cb]; sc.remove();
+        DB=resp; indexDB(); render(); if(currentStore)openStore(currentStore,true); setSync('live');
+        delete window[cb]; if(sc&&sc.remove)sc.remove();
+      } else { fail(); }
+    }catch(e){ delete window[cb]; if(sc&&sc.remove)sc.remove(); setSync('err'); }
   };
   const sc=document.createElement('script');
   sc.src=SCRIPT_URL+(SCRIPT_URL.includes('?')?'&':'?')+'action=read&callback='+cb;
-  sc.onerror=()=>{setSync('err');delete window[cb];sc.remove();};
+  sc.onerror=fail;
   document.head.appendChild(sc);
-  setTimeout(()=>{if(window[cb]){setSync('err');delete window[cb];sc.remove&&sc.remove();}},20000);
+  setTimeout(()=>{ if(window[cb]) fail(); },22000);
 }
 
 /* ====================== RENDER HOME ====================== */
