@@ -531,6 +531,11 @@ body{font-family:var(--sans);background:var(--ink);color:var(--txt);
 .eqfield:hover{border-color:var(--line)}
 .eqfield:focus{border-color:var(--leroy);background:var(--ink);outline:none}
 .eqfield::placeholder{color:var(--mut2)}
+.pendfield{margin-top:4px;font-family:var(--ff);font-size:11px;font-weight:500;line-height:1.35;color:var(--mut2)}
+.pendfield.has{color:var(--warn)}
+.pendfield:hover{border-color:var(--line)}
+.pendfield:focus{border-color:var(--warn);background:var(--ink);color:var(--txt);outline:none}
+.pendfield::placeholder{color:var(--mut2);font-weight:400}
 .circs{display:flex;gap:6px}
 .circ{width:30px;height:30px;border-radius:8px;border:1.5px solid var(--line);background:var(--panel);color:var(--mut);font-family:var(--mono);font-size:12px;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:.13s;position:relative}
 .circ:hover{border-color:var(--mut)}
@@ -1677,7 +1682,7 @@ function renderEq(s,filterAmb){
           <div class="eqcol-lbl">Equipamento</div>${e.cad
             ? `<input class="eqfield namefield" data-f="e" data-eq="${idx}" value="" placeholder="A cadastrar — digite o equipamento"><span class="cadbadge">a cadastrar</span>`
             : esc(e.e)}
-          ${e.p?`<div class="obs">⚠ ${esc(e.p)}</div>`:''}
+          <input class="eqfield pendfield ${e.p?'has':''}" data-f="p" data-eq="${idx}" value="${esc(e.p)}" placeholder="⚠ + pendência / observação" title="Pendência / observação — clique para editar">
         </div>
         <div><div class="eqcol-lbl">Modelo Evap.</div><input class="eqfield" data-f="ev" data-eq="${idx}" value="${esc(e.ev)}" placeholder="—"></div>
         <div><div class="eqcol-lbl">Modelo Cond.</div><input class="eqfield" data-f="co" data-eq="${idx}" value="${esc(e.co)}" placeholder="—"></div>
@@ -1730,7 +1735,7 @@ function refreshStoreLive(s){
 function markPending(s,eqIdx,field){
   const e=s.equip[eqIdx];
   const key=s.sheet+'::'+eqIdx;
-  pending[key]={sheet:s.sheet,eq:eqIdx,equip:e.e,e:e.e,amb:e.a,ev:e.ev,co:e.co,f:e.f,circ:e.c.map(c=>c.k)};
+  pending[key]={sheet:s.sheet,eq:eqIdx,equip:e.e,e:e.e,amb:e.a,ev:e.ev,co:e.co,f:e.f,p:e.p,o:e.o,circ:e.c.map(c=>c.k)};
   updateSaveBar();
 }
 function updateSaveBar(){
