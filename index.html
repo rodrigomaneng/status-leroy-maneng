@@ -865,7 +865,7 @@ body{font-family:var(--sans);background:var(--ink);color:var(--txt);
 <script>
 /* ====================== CONFIG ====================== */
 // Cole aqui a URL /exec do Web App do Apps Script (deixe vazio p/ usar só snapshot)
-const SCRIPT_URL = localStorage.getItem('leroy_script_url') || "";
+const SCRIPT_URL = localStorage.getItem('leroy_script_url') || "https://script.google.com/macros/s/AKfycbxz7q7-t6RGH0GkSd2yW8t4FS9GYKRYjRfGHAkh5sAAUaqEJ3spO6Qh3OgGEAywEDo0/exec";
 const SNAPSHOT_URL = "data.json"; // snapshot regenerado 1x/dia pela GitHub Action
 
 /* ====================== STATE ====================== */
@@ -932,7 +932,15 @@ function pullLive(){
   const cb='__leroy_'+Date.now();
   window[cb]=(resp)=>{
     try{
-      if(resp&&resp.stores){ DB=resp; indexDB(); render(); if(currentStore)openStore(currentStore,true); setSync('live'); }
+      if(resp&&resp.stores){
+        const snap=DB||{};
+        // preserva campos curados do snapshot diário quando o retorno ao vivo vier vazio
+        if(!resp.corretivas||!resp.corretivas.length) resp.corretivas=snap.corretivas||[];
+        if(!resp.preventivas||!resp.preventivas.length) resp.preventivas=snap.preventivas||[];
+        if(!resp.criticidade||!resp.criticidade.lojas||!resp.criticidade.lojas.length) resp.criticidade=snap.criticidade||resp.criticidade;
+        const _meta={}; (snap.stores||[]).forEach(s=>_meta[s.sheet]=s);
+        (resp.stores||[]).forEach(s=>{const o=_meta[s.sheet]; if(o){ if(!s.loja)s.loja=o.loja; if(!s.uf)s.uf=o.uf; if(!s.spv)s.spv=o.spv; }});
+        DB=resp; indexDB(); render(); if(currentStore)openStore(currentStore,true); setSync('live'); }
     }catch(e){setSync('err');}
     delete window[cb]; sc.remove();
   };
@@ -940,7 +948,7 @@ function pullLive(){
   sc.src=SCRIPT_URL+(SCRIPT_URL.includes('?')?'&':'?')+'action=read&callback='+cb;
   sc.onerror=()=>{setSync('err');delete window[cb];sc.remove();};
   document.head.appendChild(sc);
-  setTimeout(()=>{if(window[cb]){setSync('err');delete window[cb];sc.remove&&sc.remove();}},9000);
+  setTimeout(()=>{if(window[cb]){setSync('err');delete window[cb];sc.remove&&sc.remove();}},20000);
 }
 
 /* ====================== RENDER HOME ====================== */
