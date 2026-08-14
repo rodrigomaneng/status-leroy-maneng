@@ -557,6 +557,26 @@ body{font-family:var(--sans);background:var(--ink);color:var(--txt);
 .savebar .save:hover{background:var(--leroy-lt)}
 .savebar .save:disabled{opacity:.5;cursor:wait}
 .savebar .undo{background:transparent;color:var(--mut);margin-left:0}
+/* ---- Gate de editor ---- */
+.authbtn{display:flex;align-items:center;gap:7px;padding:7px 13px;border:1px solid var(--line);border-radius:99px;background:var(--panel);cursor:pointer;font-family:var(--sans);font-size:12px;font-weight:700;color:var(--mut);transition:.15s}
+.authbtn:hover{border-color:var(--leroy);color:var(--txt)}
+.authbtn.on{border-color:var(--leroy);color:var(--leroy);background:rgba(95,163,46,.07)}
+body:not(.editor) .savebar{display:none!important}
+body:not(.editor) .eqfield{pointer-events:none;border-color:transparent!important;background:transparent!important}
+body:not(.editor) [data-editoronly]{display:none!important}
+.authbox{position:fixed;inset:0;z-index:200;display:none;align-items:center;justify-content:center;background:rgba(27,38,32,.45);backdrop-filter:blur(3px)}
+.authbox.show{display:flex}
+.authcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px;width:min(360px,92vw);box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.authcard h3{font-size:16px;margin-bottom:6px}
+.authcard p{font-size:12.5px;color:var(--mut);margin-bottom:16px;line-height:1.4}
+.authcard input{width:100%;padding:11px 13px;border:1px solid var(--line);border-radius:9px;font-family:var(--sans);font-size:14px;outline:none}
+.authcard input:focus{border-color:var(--leroy)}
+.authcard .row{display:flex;gap:10px;margin-top:16px}
+.authcard button{flex:1;padding:10px;border-radius:9px;border:none;font-weight:700;font-size:13px;cursor:pointer;font-family:var(--sans)}
+.authcard .go{background:var(--leroy);color:#fff}
+.authcard .go:disabled{opacity:.5;cursor:wait}
+.authcard .cx{background:var(--panel2);color:var(--mut)}
+.authcard .err{color:var(--bad);font-size:12px;margin-top:10px;min-height:14px}
 
 .empty{padding:60px 20px;text-align:center;color:var(--mut)}
 .empty b{display:block;font-size:15px;color:var(--txt);margin-bottom:6px}
@@ -590,6 +610,7 @@ body{font-family:var(--sans);background:var(--ink);color:var(--txt);
     </div>
     <div class="cli">
       <div class="cli-tag"><span class="cli-dot"></span><b>Leroy Merlin</b><small>CLIENTE</small></div>
+      <button class="authbtn" id="authBtn" onclick="openAuth()"><span>🔒</span><span id="authBtnTxt">Somente leitura</span></button>
       <div class="sync" id="sync"><span class="pip"></span><span id="syncTxt">conectando…</span></div>
     </div>
   </div>
@@ -763,7 +784,7 @@ body{font-family:var(--sans);background:var(--ink);color:var(--txt);
     </div>
 
     <div class="sec">
-      <div class="sec-h sec-toggle" data-toggle="storeWrap"><span class="n">/</span><h2>Todas as unidades</h2><span class="hint">clique para abrir e editar</span><span class="toggle-ind" id="ind-storeWrap">▸ Clique para ver</span></div>
+      <div class="sec-h sec-toggle" data-toggle="storeWrap"><span class="n">/</span><h2>Todas as unidades</h2><span class="hint">clique para abrir</span><span class="toggle-ind" id="ind-storeWrap">▸ Clique para ver</span></div>
       <div class="sec-collapse blk" id="storeWrap">
         <div class="storelist" id="storeList"></div>
       </div>
@@ -845,6 +866,19 @@ body{font-family:var(--sans);background:var(--ink);color:var(--txt);
   </section>
 </main>
 
+<div class="authbox" id="authBox">
+  <div class="authcard">
+    <h3>Entrar como editor</h3>
+    <p>Digite a senha de edicao. Sem ela, o painel fica em modo somente leitura.</p>
+    <input type="password" id="authPw" placeholder="Senha de edicao" autocomplete="current-password">
+    <div class="err" id="authErr"></div>
+    <div class="row">
+      <button class="cx" onclick="closeAuth()">Cancelar</button>
+      <button class="go" id="authGo" onclick="doAuth()">Entrar</button>
+    </div>
+  </div>
+</div>
+
 <div class="savebar" id="savebar">
   <div class="savebar-in">
     <div class="msg"><b id="saveCount">0</b> alterações pendentes nesta loja</div>
@@ -871,6 +905,49 @@ body{font-family:var(--sans);background:var(--ink);color:var(--txt);
 /* ====================== CONFIG ====================== */
 // Cole aqui a URL /exec do Web App do Apps Script (deixe vazio p/ usar só snapshot)
 const SCRIPT_URL = localStorage.getItem('leroy_script_url') || "https://script.google.com/macros/s/AKfycbxz7q7-t6RGH0GkSd2yW8t4FS9GYKRYjRfGHAkh5sAAUaqEJ3spO6Qh3OgGEAywEDo0/exec";
+/* ====================== GATE DE EDITOR ====================== */
+let EDITOR=false, TOKEN=null;
+async function sha256hex(s){
+  const buf=await crypto.subtle.digest('SHA-256', new TextEncoder().encode(s));
+  return [...new Uint8Array(buf)].map(x=>x.toString(16).padStart(2,'0')).join('');
+}
+function setEditorUI(){
+  document.body.classList.toggle('editor', EDITOR);
+  const b=document.getElementById('authBtn'), t=document.getElementById('authBtnTxt');
+  if(b){ b.classList.toggle('on', EDITOR); b.onclick = EDITOR ? logoutEditor : openAuth; }
+  if(t){ t.textContent = EDITOR ? 'Editor ✓ (sair)' : 'Somente leitura'; }
+}
+function openAuth(){ const e=document.getElementById('authErr'); if(e)e.textContent=''; const p=document.getElementById('authPw'); if(p)p.value=''; document.getElementById('authBox').classList.add('show'); setTimeout(()=>{const el=document.getElementById('authPw'); if(el)el.focus();},50); }
+function closeAuth(){ document.getElementById('authBox').classList.remove('show'); }
+function logoutEditor(){ EDITOR=false; TOKEN=null; try{sessionStorage.removeItem('leroy_token');}catch(e){} pending={}; pendingGeneric={}; updateSaveBar(); setEditorUI(); toast('Voce saiu do modo editor'); }
+async function doAuth(){
+  const pw=(document.getElementById('authPw').value||'').trim();
+  const err=document.getElementById('authErr');
+  if(!pw){ err.textContent='Digite a senha.'; return; }
+  if(!SCRIPT_URL){ err.textContent='Apps Script nao configurado.'; return; }
+  const go=document.getElementById('authGo'); go.disabled=true; err.textContent='Verificando…';
+  let hash; try{ hash=await sha256hex(pw); }catch(e){ err.textContent='Navegador sem suporte a criptografia (use HTTPS).'; go.disabled=false; return; }
+  verifyToken(hash, ok=>{
+    go.disabled=false;
+    if(ok){ EDITOR=true; TOKEN=hash; try{sessionStorage.setItem('leroy_token',hash);}catch(e){} setEditorUI(); closeAuth(); toast('Modo editor ativado ✓'); }
+    else { err.textContent='Senha incorreta.'; }
+  });
+}
+function verifyToken(hash, cb){
+  const name='__v'+Math.random().toString(36).slice(2);
+  let done=false; let sc;
+  window[name]=function(resp){ done=true; try{ cb(!!(resp&&resp.ok)); } finally { try{delete window[name];}catch(e){} if(sc&&sc.remove)sc.remove(); } };
+  sc=document.createElement('script');
+  sc.src=SCRIPT_URL+(SCRIPT_URL.includes('?')?'&':'?')+'action=verify&token='+encodeURIComponent(hash)+'&callback='+name;
+  sc.onerror=()=>{ if(!done){ try{delete window[name];}catch(e){} cb(false); } };
+  document.head.appendChild(sc);
+  setTimeout(()=>{ if(!done){ try{delete window[name];}catch(e){} cb(false); } }, 15000);
+}
+function restoreEditor(){
+  let t=null; try{ t=sessionStorage.getItem('leroy_token'); }catch(e){}
+  if(t && SCRIPT_URL){ verifyToken(t, ok=>{ if(ok){ EDITOR=true; TOKEN=t; } setEditorUI(); }); }
+  else { setEditorUI(); }
+}
 const SNAPSHOT_URL = "data.json"; // snapshot regenerado 1x/dia pela GitHub Action
 
 /* ====================== STATE ====================== */
@@ -910,6 +987,8 @@ async function boot(){
   }
   // 2. live overlay from Apps Script
   if(SCRIPT_URL){ pullLive(); }
+  // 3. restaura modo editor se ja autenticado nesta aba
+  restoreEditor();
 }
 function indexDB(){
   storeIndex={};
@@ -1402,6 +1481,7 @@ function setupPrevUpload(){
 
 /* generic pending marker for new tabs (saved via same savebar) */
 function markGeneric(kind){
+  if(!EDITOR)return;
   pendingGeneric[kind]=true;
   $('#savebar').classList.add('show');
   $('#saveCount').textContent='•';
@@ -1700,13 +1780,16 @@ function renderEq(s,filterAmb){
 }
 
 function bindEq(s){
+  $$('#eqtable .eqfield').forEach(i=>i.readOnly=!EDITOR);
   $$('#eqtable .circ').forEach(b=>b.onclick=()=>{
+    if(!EDITOR)return;
     const eq=+b.dataset.eq,ci=+b.dataset.ci,e=s.equip[eq];
     e.c[ci].k=e.c[ci].k?0:1;
     markPending(s,eq,'circ');
     refreshStoreLive(s);
   });
   $$('#eqtable [data-allok]').forEach(b=>b.onclick=()=>{
+    if(!EDITOR)return;
     const eq=+b.dataset.allok,e=s.equip[eq];
     const target=e.c.every(c=>c.k)?0:1; // toggle: if all ok -> all off, else all on
     e.c.forEach(c=>c.k=target);
@@ -1714,6 +1797,7 @@ function bindEq(s){
     refreshStoreLive(s);
   });
   $$('#eqtable .eqfield').forEach(inp=>inp.onchange=()=>{
+    if(!EDITOR)return;
     const eq=+inp.dataset.eq,f=inp.dataset.f,e=s.equip[eq];
     e[f]=inp.value;
     if(f==='e'&&inp.value.trim()){ e.cad=0; refreshStoreLive(s); render(); showViewSilent('store'); }
@@ -1733,6 +1817,7 @@ function refreshStoreLive(s){
 
 /* ====================== PENDING / SAVE ====================== */
 function markPending(s,eqIdx,field){
+  if(!EDITOR)return;
   const e=s.equip[eqIdx];
   const key=s.sheet+'::'+eqIdx;
   pending[key]={sheet:s.sheet,eq:eqIdx,equip:e.e,e:e.e,amb:e.a,ev:e.ev,co:e.co,f:e.f,p:e.p,o:e.o,circ:e.c.map(c=>c.k)};
@@ -1745,6 +1830,7 @@ function updateSaveBar(){
 }
 $('#undoBtn').onclick=()=>{ if(SCRIPT_URL){pullLive();}else{boot();} pending={};pendingGeneric={};updateSaveBar();toast('Alterações descartadas');};
 $('#saveBtn').onclick=async()=>{
+  if(!EDITOR||!TOKEN){ toast('Entre como editor para salvar.',true); openAuth(); return; }
   const edits=Object.values(pending);
   const hasGeneric=Object.keys(pendingGeneric).length>0;
   if(!edits.length && !hasGeneric)return;
@@ -1758,7 +1844,7 @@ $('#saveBtn').onclick=async()=>{
   }
   $('#saveBtn').disabled=true;setSync('saving');
   try{
-    const body={action:'write',edits};
+    const body={action:'write',token:TOKEN,edits};
     if(hasGeneric){ body.corretivas=DB.corretivas||[]; body.preventivas=DB.preventivas||[]; }
     await fetch(SCRIPT_URL,{method:'POST',mode:'no-cors',headers:{'Content-Type':'text/plain'},
       body:JSON.stringify(body)});
