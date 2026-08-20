@@ -1,0 +1,73 @@
+name: Atualizar dashboard Leroy
+
+on:
+  schedule:
+    - cron: '0 10 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  atualizar:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Baixar o repositorio
+        uses: actions/checkout@v4
+
+      - name: Preparar Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Instalar dependencias
+        run: pip install openpyxl google-auth google-api-python-client
+
+      - name: Gravar a chave do robo
+        run: printf '%s' "$GDRIVE_SA_KEY" > sa.json
+        env:
+          GDRIVE_SA_KEY: ${{ secrets.GDRIVE_SA_KEY }}
+
+      - name: Baixar a planilha do Drive
+        run: |
+          python - <<'PY'
+          from google.oauth2 import service_account
+          from googleapiclient.discovery import build
+          FILE_ID = "12jodhy_EGUQ1w2EcqDQyS3WZmQtISwSAxMuqCyonbzI"
+          creds = service_account.Credentials.from_service_account_file(
+              "sa.json", scopes=["https://www.googleapis.com/auth/drive.readonly"])
+          svc = build("drive", "v3", credentials=creds)
+          data = svc.files().export(
+              fileId=FILE_ID,
+              mimeType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+          ).execute()
+          open("leroy.xlsx", "wb").write(data)
+          print("planilha baixada:", len(data), "bytes")
+          PY
+
+      - name: Gerar o data.json
+        run: python gerar_data_leroy.py leroy.xlsx data.json data.json
+
+      - name: Validar antes de publicar
+        run: |
+          python - <<'PY'
+          import json
+          db = json.load(open("data.json", encoding="utf-8"))
+          assert len(db["stores"]) >= 50, "poucas lojas: %d" % len(db["stores"])
+          assert db["corretivas"] and db["preventivas"], "corretivas/preventivas vazias"
+          print("OK:", len(db["stores"]), "lojas")
+          PY
+
+      - name: Publicar (commit + push)
+        run: |
+          rm -f sa.json leroy.xlsx
+          git config user.name  "Automacao Leroy"
+          git config user.email "actions@github.com"
+          if git diff --quiet -- data.json; then
+            echo "Sem mudancas no data.json."
+          else
+            N=$(python -c "import json;print(len(json.load(open('data.json',encoding='utf-8'))['stores']))")
+            git add data.json
+            git commit -m "Atualizacao automatica - ${N} lojas ($(date +%d/%m/%Y))"
+            git push
+          fi
